@@ -27,6 +27,35 @@ export const userData = () => {
 
     const today = new Date();
 
+    const next7Days = [];
+    for (let i = 0; i < 7; i++) {
+        const nextDay = new Date(today);
+        nextDay.setDate(today.getDate() + i);
+        next7Days.push(nextDay);
+    }
+
+    const next7DaysData = next7Days.map((day) => {
+        const formattedDate = day.toLocaleDateString("en-US", {
+            weekday: "long",
+            month: "long",
+            day: "numeric",
+            year: "numeric",
+            timeZone: "Asia/Manila",
+        });
+
+        const parts = formattedDate.split(" ");
+        const monthNumbers = day.getMonth(); // Access month number (0-11)
+        return {
+            weekday: parts[0].replace(",", ""),
+            month: parts[1].replace(",", ""),
+            day: parts[2].replace(",", ""),
+            year: parts[3].replace(",", ""),
+            monthNumber: monthNumbers,
+        };
+    });
+
+    const day1 = next7DaysData[0];
+
     if (!user) {
         return;
     }
@@ -102,6 +131,10 @@ export const userData = () => {
     };
 
     return `
+
+    Date Today:
+        - Today is ${day1.weekday}, ${day1.month}, ${day1.day}, ${day1.year}.
+
     Personal Info: 
         - First name: ${user?.firstName || "N/A"}
         - Last name: ${user?.lastName || "N/A"}

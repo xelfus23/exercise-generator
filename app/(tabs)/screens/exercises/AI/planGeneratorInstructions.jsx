@@ -183,29 +183,29 @@ const planGeneratorInstructions = (data) => {
         ${data}
 
     OUTPUT REQUIREMENTS:
-        - Start the plan from today's date (${day1.weekday}, ${day1.month} ${day1.day}, ${day1.year}).
-        - Include **4 key plan types** based on fitness levels:
-            1. **Beginner:** 4-6 exercises/day; emphasize rest and technique.
-            2. **Intermediate:** 5-8 exercises/day; introduce progressive overload.
-            3. **Advanced:** 7-10 exercises/day; include HIIT and functional training.
-            4. **Athlete:** 10-15 exercises/day; focus on sport-specific training.
+        - Start the plan from today's date ${day1.weekday}, ${day1.month} ${day1.day}, ${day1.year}.
+        - Include 4 key plan types based on fitness levels:
+            1. Beginner: 4-6 exercises/day; emphasize rest and technique.
+            2. Intermediate: 5-8 exercises/day; introduce progressive overload.
+            3. Advanced: 7-10 exercises/day; include HIIT and functional training.
+            4. Athlete: 10-15 exercises/day; focus on sport-specific training.
 
     PLAN STRUCTURE:
-        - **Title:** A clear title without week numbers.
-        - **General Objectives:** Broad goals for the entire plan.
-        - **Plan Description:** Overview of the plan.
-        - **Diet Recommendation:** Suggest appropriate diet.
-        - **Week Objectives:** Specific achievements expected for the week.
-        - **Daily Details:** 
+        - title: A clear title without week numbers.
+        - General Objectives: Broad goals for the entire plan.
+        - Plan Description: Overview of the plan.
+        - Diet Recommendation: Suggest appropriate diet.
+        - Week Objectives: Specific achievements expected for the week.
+        - Daily Details: 
             - Include dayObjectives, exercises, and estimatedTime.
             - Use accurate calorie estimates based on user vitals.
+            - Rest Days: Balance exercise with proper rest days.
 
     EXERCISE DATA DETAILS:
-        - **Keys:** Unique keys for each exercise to prevent duplication.
-        - **Categories:** Specify if exercises target strength, cardio, flexibility, etc.
-        - **Calories:** Ensure realistic values based on the user’s weight and activity.
-        - **Instructions:** Include clear, actionable steps for each exercise.
-        - **Rest Days:** Balance exercise with proper rest days.
+        - Keys: Unique keys for each exercise to prevent duplication.
+        - Categories: Specify if exercises target strength, cardio, flexibility, etc.
+        - Calories: Ensure realistic values based on the user’s weight and activity.
+        - Instructions: Include clear, actionable steps for each exercise.
 
     Follow these month Numbers: 
         January: 0, 
@@ -220,7 +220,6 @@ const planGeneratorInstructions = (data) => {
         October: 9, 
         November: 10, 
         December: 11
-
     
     ERROR HANDLING:
         - Return JSON errors (e.g., {"error": "Error message"}) if:
@@ -233,8 +232,6 @@ const planGeneratorInstructions = (data) => {
         - Do not add swimming unless the user asked, or if the user have a swimming pool.
 
     Exercise || Workout Plan Data: 
-        - Today is ${day1.weekday}, ${day1.month}, ${day1.day}, ${day1.year}.
-        - The days and date should always start from today.
         - You can add more objectives depends on the exercise plan.
     
     Beginner Plan: 
@@ -372,7 +369,7 @@ const planGeneratorInstructions = (data) => {
     - Use the following format for the output: 
     
     {
-        "title": "Title of the whole workout plan, // do not add Week 1",
+        "title": "Title of the workout plan based on user requests.",
         "generalObjectives": ["objective 1", "objective 2", "objective 3"],
         "planDescription": "Description",
         "dayCount": 0,
