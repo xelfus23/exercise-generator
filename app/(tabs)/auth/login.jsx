@@ -20,7 +20,7 @@ import {
 } from "react-native-responsive-screen";
 import Loading from "@/components/customs/loading.jsx";
 import { useNavigation } from "expo-router";
-import styles from "./authStyles.jsx";
+import { LoginRegisterStyle } from "./authStyles";
 
 const Login = () => {
     const navigator = useNavigation();
@@ -31,8 +31,6 @@ const Login = () => {
 
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
-
-    const { LoginRegisterStyle, style } = styles;
 
     const handleLogin = async () => {
         setLoading(true);

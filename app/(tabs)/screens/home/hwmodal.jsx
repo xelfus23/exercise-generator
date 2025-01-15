@@ -29,7 +29,7 @@ import Loading from "../../../../components/customs/loading";
 import { useAuth } from "@/components/auth/authProvider";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { LinearGradient } from "expo-linear-gradient";
-import style from "@/app/(tabs)/auth/authStyles";
+import { LoginRegisterStyle } from "../../auth/authStyles";
 import ExerciseHandler from "../exercises/exercisehandler";
 import Slider from "@react-native-community/slider";
 import { useSharedValue } from "react-native-reanimated";
@@ -37,7 +37,6 @@ import { AntDesign } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import { throttle } from "lodash";
 
-const { LoginRegisterStyle } = style;
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 export default function HWmodal() {
