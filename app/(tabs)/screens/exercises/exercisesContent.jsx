@@ -23,14 +23,11 @@ import { addComplete } from "./exercisehandler";
 import * as Notification from "expo-notifications";
 import * as TaskManager from "expo-task-manager";
 import * as BackgroundFetch from "expo-background-fetch";
-
 const BACKGROUND_TIMER_TASK = "background-timer-task";
-const style = styleX.style
 
 TaskManager.defineTask(BACKGROUND_TIMER_TASK, async () => {
     try {
         console.log("Running background task");
-        // You could store elapsed time in AsyncStorage or update a notification here
         return BackgroundFetch.Result.NewData;
     } catch (err) {
         console.error("Background task error:", err);
@@ -54,11 +51,21 @@ Notification.setNotificationHandler({
     }),
 });
 
+
+const formatTime = (time) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+        2,
+        "0"
+    )}`;
+};
+
 export default function ExerciseContent({ route, setTabBarVisible }) {
-    const { exercise, value, index, sets } = route.params;
-    const { user, updateUserData, exercisePlans, dayCount } = useAuth();
-    const [cooledDown, setCooledDown] = useState(false);
+    const { exercise, value, sets } = route.params;
     const navigation = useNavigation();
+    const [currentSet, setCurrentSet] = useState(1);
+    const [isCooldown, setIsCooldown] = useState(true);
 
     useEffect(() => {
         setTabBarVisible(false);
@@ -71,212 +78,162 @@ export default function ExerciseContent({ route, setTabBarVisible }) {
         }
     }, [navigation, exercise?.exercise?.name]);
 
-    const [countdown, setCountdown] = useState(30 * 60); // 30 minutes in seconds
-
-    useEffect(() => {
-        const startBackgroundTask = async () => {
-            await registerBackgroundFetch();
-        };
-
-        startBackgroundTask();
-
-        // Setup countdown timer that reduces every second
-        const timer = setInterval(() => {
-            setCountdown((prev) => (prev > 0 ? prev - 1 : 0));
-        }, 1000);
-
-        return () => clearInterval(timer); // Cleanup on unmount
-    }, []);
-
-    const formatTime = (time) => {
-        const minutes = Math.floor(time / 60);
-        const seconds = time % 60;
-        return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
-            2,
-            "0"
-        )}`;
-    };
-
-    const requestPermissions = async () => {
-        const { status } = await Notification.requestPermissionsAsync();
-        if (status !== "granted") {
-            alert("Notification permissions not granted!");
-            return;
+    const handleCompleteSet = () => {
+        if (currentSet < sets) {
+            setIsCooldown(true); // Trigger cooldown before the next set
+        } else {
+            completeExercise();
         }
     };
 
-    useEffect(() => {
-        requestPermissions();
-    }, []);
+    const handleCooldownComplete = () => {
+        setIsCooldown(false);
+        setCurrentSet((prev) => prev + 1); // Move to the next set
+    };
 
-    const complete = (item) => {
-        if (user) {
-            addComplete(
-                user,
-                item,
-                value,
-                sets,
-                index,
-                updateUserData,
-                exercisePlans,
-                dayCount
-            );
-            navigation.navigate("ExercisesList");
-        }
+    const completeExercise = () => {
+        // Mark exercise as completed in the database
+        addComplete(
+            user,
+            item,
+            value,
+            sets,
+            index,
+            updateUserData,
+            exercisePlans,
+            dayCount
+        );
+        navigation.navigate("ExercisesList");
     };
 
     return (
-        <SafeAreaView style={[style.main_container]}>
-            <Header title={exercise?.exercise?.name || "Exercise"} />
-            {/* Fallback to "Exercise" if name is undefined */}
-            {!cooledDown ? (
-                <ExerciseScreen setCooledDown={setCooledDown} />
-            ) : (
-                <Exercise
-                    complete={complete}
-                    duration={value}
-                    item={exercise}
-                />
-            )}
+        <SafeAreaView style={styles.mainContainer}>
+            <Header title={`${exercise?.exercise?.name || "Exercise"}`} />
+            <View style={styles.content}>
+                {isCooldown ? (
+                    <CooldownScreen onComplete={handleCooldownComplete} />
+                ) : (
+                    <>
+                        {exercise?.exercise?.type === "duration" && (
+                            <DurationScreen duration={value} onComplete={handleCompleteSet} />
+                        )}
+                        {exercise?.exercise?.type === "reps" && (
+                            <RepsScreen value={value} onComplete={handleCompleteSet} />
+                        )}
+                        {exercise?.exercise?.type === "distance" && (
+                            <DistanceScreen value={value} onComplete={handleCompleteSet} />
+                        )}
+                    </>
+                )}
+            </View>
         </SafeAreaView>
     );
 }
 
-const ExerciseScreen = ({ setCooledDown }) => {
-    const getReadyCountdown = 10;
-    const [time, setTime] = useState(getReadyCountdown);
+const DurationScreen = ({ duration, onComplete }) => {
+    return (
+        <CountdownCircleTimer
+            isPlaying
+            duration={duration}
+            colors={["#00c896", "#d1a338", "#e64848"]}
+            colorsTime={[10, 5, 0]}
+            onComplete={onComplete}
+        >
+            {({ remainingTime }) => (
+                <Text style={styles.time}>{formatTime(remainingTime)}</Text>
+            )}
+        </CountdownCircleTimer>
+    );
+};
+
+const CooldownScreen = ({ onComplete }) => {
+    return (
+        <CountdownCircleTimer
+            isPlaying
+            duration={10} // Cooldown duration
+            colors={["#0077b6"]}
+            onComplete={onComplete}
+        >
+            {({ remainingTime }) => (
+                <Text style={styles.time}>{formatTime(remainingTime)}</Text>
+            )}
+        </CountdownCircleTimer>
+    );
+};
+
+const RepsScreen = ({ value, onComplete }) => {
+    const [currentRep, setCurrentRep] = useState(1);
+
+    const handleNextRep = () => {
+        if (currentRep < value) {
+            setCurrentRep((prev) => prev + 1);
+        } else {
+            onComplete();
+        }
+    };
 
     return (
-        <View style={styles.container}>
-            <Text style={styles.label}>
-                Get Ready! <Text style={styles.timer}>{time}</Text>
-            </Text>
-            <CountdownCircleTimer
-                key="get-ready-timer" // Ensures re-render on reset
-                isPlaying
-                duration={getReadyCountdown}
-                colors={["#00c896", "#d1a338", "#e64848"]}
-                colorsTime={[10, 5, 0]}
-                onComplete={() => setCooledDown(true)}
-                onUpdate={setTime}
-            >
-                {() => (
-                    <TouchableOpacity
-                        style={styles.centered}
-                        onPress={() => setCooledDown(true)}
-                        accessibilityLabel="Skip to Exercise"
-                    >
-                        <Feather
-                            name="skip-forward"
-                            size={HP(5)}
-                            color={MyColors(1).white}
-                        />
-                    </TouchableOpacity>
-                )}
-            </CountdownCircleTimer>
+        <View style={styles.repsContainer}>
+            <Text style={styles.time}>Rep {currentRep} of {value}</Text>
+            <TouchableOpacity onPress={handleNextRep} style={styles.nextButton}>
+                <Feather name="arrow-right" size={24} color="white" />
+                <Text style={styles.nextText}>Next Rep</Text>
+            </TouchableOpacity>
         </View>
     );
 };
 
-const Exercise = ({ duration, item, complete }) => {
-    const formatTime = (totalSeconds) => {
-        const minutes = Math.floor(totalSeconds / 60);
-        const seconds = totalSeconds % 60;
-        return `${minutes.toString().padStart(2, "0")}:${seconds
-            .toString()
-            .padStart(2, "0")}`;
+const DistanceScreen = ({ value, onComplete }) => {
+    const [distance, setDistance] = useState(0);
+
+    const handleUpdateDistance = () => {
+        if (distance < value) {
+            setDistance((prev) => prev + 1); // Simulating distance tracking
+        } else {
+            onComplete();
+        }
     };
 
     return (
-        <View style={styles.container}>
-            {item?.exercise?.type === "duration" ? (
-                <View style={styles.timerContainer}>
-                    <CountdownCircleTimer
-                        key="exercise-timer"
-                        isPlaying
-                        duration={duration}
-                        colors={["#00c896", "#d1a338", "#e64848"]}
-                        colorsTime={[10, 5, 0]}
-                        onComplete={() => complete(item)}
-                    >
-                        {({ remainingTime }) => (
-                            <Text style={styles.remainingTime}>
-                                {formatTime(remainingTime)}
-                            </Text>
-                        )}
-                    </CountdownCircleTimer>
-                </View>
-            ) : (
-                <View style={styles.repsContainer}>
-                    <View style={styles.row}>
-                        <Text style={styles.label}>
-                            {item?.exercise?.name || "Exercise"}
-                        </Text>
-                        <Text style={styles.reps}>{duration}x</Text>
-                    </View>
-                    <TouchableOpacity
-                        style={styles.doneButton}
-                        onPress={() => complete(item)}
-                        accessibilityLabel="Mark Exercise as Done"
-                    >
-                        <Text style={styles.doneText}>Done</Text>
-                    </TouchableOpacity>
-                </View>
-            )}
+        <View style={styles.repsContainer}>
+            <Text style={styles.time}>{distance} / {value} meters</Text>
+            <TouchableOpacity onPress={handleUpdateDistance} style={styles.nextButton}>
+                <Feather name="arrow-right" size={24} color="white" />
+                <Text style={styles.nextText}>Add Distance</Text>
+            </TouchableOpacity>
         </View>
     );
 };
 
 const styles = StyleSheet.create({
-    container: {
+    mainContainer: {
         flex: 1,
-        padding: 20,
-        alignItems: "center",
-        gap: HP(8),
-        paddingTop: HP(20),
+        backgroundColor: MyColors(1).black,
     },
-    timer: {
-        fontSize: HP(3),
-        color: MyColors(1).green,
-        fontWeight: "bold",
-    },
-    label: {
-        fontSize: HP(3),
-        color: MyColors(1).white,
-    },
-    remainingTime: {
-        color: MyColors(1).green,
-        fontSize: HP(4),
-    },
-    centered: {
-        flex: 1,
+    content: {
         justifyContent: "center",
         alignItems: "center",
+        flex: 1,
+    },
+    time: {
+        color: MyColors(1).white,
+        fontWeight: "bold",
+        fontSize: 24,
     },
     repsContainer: {
-        gap: HP(2),
+        alignItems: "center",
     },
-    row: {
+    nextButton: {
+        marginTop: 20,
         flexDirection: "row",
         alignItems: "center",
-        gap: WP(2),
+        backgroundColor: "#00c896",
+        padding: 10,
+        borderRadius: 5,
     },
-    reps: {
-        color: MyColors(1).green,
-        fontSize: HP(3),
-    },
-    doneButton: {
-        padding: WP(1),
-        backgroundColor: MyColors(1).gray,
-        borderRadius: WP(4),
-        borderColor: MyColors(1).green,
-        borderWidth: 1,
-        alignItems: "center",
-        justifyContent: "center",
-    },
-    doneText: {
-        color: MyColors(1).green,
-        fontSize: HP(3),
+    nextText: {
+        marginLeft: 10,
+        color: "white",
         fontWeight: "bold",
     },
 });
