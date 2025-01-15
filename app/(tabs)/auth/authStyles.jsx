@@ -5,15 +5,14 @@ import {
     heightPercentageToDP as HP,
 } from "react-native-responsive-screen";
 
-export const style = StyleSheet.create({
+const style = StyleSheet.create({
     main_container: {
         backgroundColor: MyColors(1).black,
         width: WP(100),
         flex: 1,
     },
 });
-
-export const LoginRegisterStyle = StyleSheet.create({
+const LoginRegisterStyle = StyleSheet.create({
     buttonContainer: {
         flexDirection: "row",
         justifyContent: "space-between",
@@ -105,3 +104,5 @@ export const LoginRegisterStyle = StyleSheet.create({
         fontWeight: "bold",
     },
 });
+
+export default { LoginRegisterStyle, style }

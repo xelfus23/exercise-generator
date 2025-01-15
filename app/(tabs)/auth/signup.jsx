@@ -1,22 +1,16 @@
-import {
-    View,
-    Text,
-    TouchableOpacity,
-    TextInput,
-    SafeAreaView,
-    ScrollView,
-    StatusBar,
-} from "react-native";
+import { View, Text, ScrollView } from "react-native";
 import React, { useRef, useState } from "react";
 import { widthPercentageToDP as WP, heightPercentageToDP as HP } from "react-native-responsive-screen";
-import { MyColors } from "@/constants/myColors";
 import { useAuth } from "@/components/auth/authProvider";
 import ScrollableInput from "@/components/customs/scrollableInput";
-import { useNavigation } from "expo-router";
 import Loading from "@/components/customs/loading";
 import Feather from "@expo/vector-icons/Feather";
 import { getAuth } from "firebase/auth";
-import { LoginRegisterStyle } from "./authStyles";
+import styles from '../auth/authStyles'
+const LoginRegisterStyle = styles.LoginRegisterStyle
+import NameRegistration from './signup/namereg'
+import PasswordRegistration from './signup/passwordreg'
+import EmailRegistration from './signup/emailreg'
 
 const Signup = () => {
     const { register, updateUserData } = useAuth();

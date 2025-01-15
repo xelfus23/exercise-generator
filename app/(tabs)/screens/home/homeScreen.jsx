@@ -100,22 +100,20 @@ export default function HomeScreen() {
     }, []);
 
     useEffect(() => {
-        if (user) {
-            if (
-                !user?.bodyMetrics ||
-                !user?.gender ||
-                !user?.activityLevel ||
-                !user?.fitnessLevel ||
-                !user?.mainGoal ||
-                !user?.birthDate ||
-                !user?.selectedPlace
-            ) {
-                setShowModal(true);
-            } else {
-                setShowModal(false);
-            }
-            setShowLoadingScreen(false);
+        if (
+            !user?.bodyMetrics ||
+            !user?.gender ||
+            !user?.activityLevel ||
+            !user?.fitnessLevel ||
+            !user?.mainGoal ||
+            !user?.birthDate ||
+            !user?.selectedPlace
+        ) {
+            setShowModal(true);
+        } else {
+            setShowModal(false);
         }
+        setShowLoadingScreen(false);
     }, [user]);
 
     const handleScroll = (event) => {
@@ -182,7 +180,7 @@ export default function HomeScreen() {
                     />
                 </View>
 
-                {showModal && <HWmodal />}
+                {showModal && <HWmodal setShowModal={setShowModal} />}
             </ScrollView>
         </SafeAreaView>
     );

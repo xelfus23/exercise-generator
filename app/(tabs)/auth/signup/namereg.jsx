@@ -1,8 +1,10 @@
 import { View, Text, TouchableOpacity, SafeAreaView, TextInput } from "react-native";
 import { MyColors } from "../../../../constants/myColors";
 import { heightPercentageToDP as HP, widthPercentageToDP as WP } from "react-native-responsive-screen";
-import { LoginRegisterStyle } from '../authStyles'
-import { useState, useS } from "react";
+import { useState } from "react";
+import styles from '../authStyles'
+import { useNavigation } from "expo-router";
+const LoginRegisterStyle = styles.LoginRegisterStyle
 
 export default function NameRegistration({ setFirstName, setLastName, onNext, scrolling }) {
     const navigator = useNavigation();

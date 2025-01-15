@@ -199,8 +199,8 @@ export default function Exercise({ selectedItem, closeModal }) {
                                 {item?.exercise.type === "duration"
                                     ? "DURATION"
                                     : item?.exercise.type === "reps"
-                                    ? "REPEATS"
-                                    : "DISTANCE"}
+                                        ? "REPEATS"
+                                        : "DISTANCE"}
                             </Text>
 
                             <View style={styles.DButtonContainer}>
@@ -209,8 +209,8 @@ export default function Exercise({ selectedItem, closeModal }) {
                                         item?.exercise.type === "duration"
                                             ? minusDuration
                                             : item?.exercise.type === "reps"
-                                            ? minusRepeats
-                                            : minusDistance
+                                                ? minusRepeats
+                                                : minusDistance
                                     }
                                 >
                                     <AntDesign
@@ -224,16 +224,16 @@ export default function Exercise({ selectedItem, closeModal }) {
                                     {item?.exercise.type === "duration"
                                         ? formatTime(duration)
                                         : item?.exercise?.type === "reps"
-                                        ? repeats
-                                        : distance.toFixed(2) + " km"}
+                                            ? repeats
+                                            : distance.toFixed(2) + " km"}
                                 </Text>
                                 <TouchableOpacity
                                     onPress={
                                         item?.exercise.type === "duration"
                                             ? addDuration
                                             : item?.exercise?.type === "reps"
-                                            ? addRepeats
-                                            : addDistance
+                                                ? addRepeats
+                                                : addDistance
                                     }
                                 >
                                     <AntDesign

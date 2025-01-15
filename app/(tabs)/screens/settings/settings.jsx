@@ -23,15 +23,15 @@ import { useNavigation, useIsFocused } from "@react-navigation/native";
 import { MyColors } from "@/constants/myColors";
 import { useAuth } from "@/components/auth/authProvider";
 import { createStackNavigator } from "@react-navigation/stack";
-import styleX from "@/app/(tabs)/auth/authStyles";
-import React, { useRef, useState, useCallback } from "react";
-import { Ionicons } from "@expo/vector-icons";
+import styleX from "../../auth/authStyles";
+import React from "react";
 import CustomHeaderB from "./customDrawerLabel";
 
 import AccountSettings from "./account/account";
 import Profile from "./Profile/profile";
 
-const { style } = styleX;
+const style = styleX.style
+
 const Stack = createStackNavigator();
 
 const Settings = () => {

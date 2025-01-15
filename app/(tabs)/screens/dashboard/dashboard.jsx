@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleSheet, View, Text, ScrollView } from "react-native";
+import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from "react-native";
 import CustomHeader from "../../../../components/customs/CustomHeader";
 import { MyColors } from "@/constants/myColors";
 import {
@@ -11,6 +11,7 @@ import Daily from "./daily";
 import ToDo from "./exerciseTodo";
 import LineChartBlock from "./lineChart";
 import StackedBarChartBlock from "./weekProgress";
+import { useNavigation } from "expo-router";
 
 export default function Dashboard() {
     const {
@@ -25,6 +26,8 @@ export default function Dashboard() {
         weekProgress,
         allDaysInAWeek,
     } = useAuth();
+
+    const navigation = useNavigation();
 
     return (
         <View style={styles.mainContainer}>
@@ -44,15 +47,32 @@ export default function Dashboard() {
                     exercisePlans={exercisePlans}
                 />
                 {todayExercise?.length === 0 ? (
-                    <Text
-                        style={{
-                            color: MyColors(1).yellow,
-                            textAlign: "center",
-                            marginVertical: HP(2),
+                    <View style={{ width: WP(100), justifyContent: 'center', alignItems: 'center', display: 'flex' }}>
+                        <Text
+                            style={{
+                                color: MyColors(1).yellow,
+                                textAlign: "center",
+                                marginVertical: HP(2),
+                            }}
+                        >
+                            You don't have any todayExercise yet. Please generate
+
+                        </Text>
+                        <TouchableOpacity style={{
+                            backgroundColor: MyColors(1).green,
+                            padding: WP(2),
+                            borderRadius: WP(4),
                         }}
-                    >
-                        You don't have any todayExercise yet. Please generate
-                    </Text>
+                            onPress={() => navigation.navigate('Exercises')}
+                        >
+                            <Text style={{
+                                fontWeight: 'bold',
+                                color: MyColors(1).black
+                            }}>
+                                Generate Exercise
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
                 ) : (
                     <StackedBarChartBlock
                         allDaysInAWeek={allDaysInAWeek}

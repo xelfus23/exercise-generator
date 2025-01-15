@@ -1,7 +1,11 @@
 import { View, Text, TouchableOpacity, SafeAreaView, TextInput } from "react-native";
 import { MyColors } from "../../../../constants/myColors";
 import { heightPercentageToDP as HP, widthPercentageToDP as WP } from "react-native-responsive-screen";
-import { LoginRegisterStyle } from '../authStyles'
+import { useState } from "react";
+import { useNavigation } from "expo-router";
+import styles from '../authStyles'
+const LoginRegisterStyle = styles.LoginRegisterStyle
+import Loading from "@/components/customs/loading";
 
 export default function EmailRegistration({ handleSubmit, scrolling, onBack }) {
     const [mail, setMail] = useState(null);

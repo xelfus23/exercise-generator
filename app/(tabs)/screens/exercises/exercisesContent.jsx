@@ -9,7 +9,7 @@ import {
     PermissionsAndroid,
 } from "react-native";
 import { useNavigation } from "expo-router";
-import { style } from "@/app/(tabs)/auth/authStyles";
+import styleX from "@/app/(tabs)/auth/authStyles";
 import { MyColors } from "@/constants/myColors";
 import {
     widthPercentageToDP as WP,
@@ -25,6 +25,7 @@ import * as TaskManager from "expo-task-manager";
 import * as BackgroundFetch from "expo-background-fetch";
 
 const BACKGROUND_TIMER_TASK = "background-timer-task";
+const style = styleX.style
 
 TaskManager.defineTask(BACKGROUND_TIMER_TASK, async () => {
     try {

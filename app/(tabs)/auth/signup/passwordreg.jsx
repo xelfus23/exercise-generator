@@ -1,8 +1,11 @@
-import { View, Text, TouchableOpacity, SafeAreaView, TextInput } from "react-native";
+import { View, Text, TouchableOpacity, SafeAreaView, TextInput, StatusBar } from "react-native";
 import { MyColors } from "../../../../constants/myColors";
 import { heightPercentageToDP as HP, widthPercentageToDP as WP } from "react-native-responsive-screen";
-import { LoginRegisterStyle } from '../authStyles'
+import styles from '../authStyles'
+import { useState } from "react";
+import { Feather } from "@expo/vector-icons";
 
+const LoginRegisterStyle = styles.LoginRegisterStyle
 
 export default function PasswordRegistration({ setPassword, onNext, scrolling, onBack }) {
     const [pW, setPW] = useState();

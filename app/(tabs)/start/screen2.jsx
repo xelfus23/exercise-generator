@@ -1,4 +1,4 @@
-import { useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { View, Animated, Text, TouchableOpacity } from "react-native";
 import { useNavigation } from "expo-router";
 import { widthPercentageToDP as WP, heightPercentageToDP as HP } from "react-native-responsive-screen";
@@ -44,6 +44,17 @@ export default function Screen2({ handleScroll, screenIndex }) {
         animateTexts();
     }
 
+    const randomMessage = [
+        "Get personalized workout routines tailored just for you. Our AI-powered fitness app creates custom exercise plans based on your goals, fitness level, and available equipment. Start your fitness journey today!",
+        "Stop wasting time with generic workout plans that don't deliver results. Our AI fitness app creates personalized exercise routines that maximize your progress. Get a workout plan tailored to your body, your goals, and your lifestyle.", "Experience the future of fitness with AI-powered personalized workouts. Our advanced artificial intelligence analyzes your individual needs to generate exercise plans that are optimized for your success. No more guesswork, just results.", "Ready to transform your fitness journey? Our AI-powered workout generator creates personalized exercise routines tailored to your specific needs. Tell us about your goals and get your custom plan today!", "One size doesn't fit all when it comes to fitness. Our AI creates exercise plans customized to your unique profile. Input your fitness level, goals, and equipment, and let our AI build the perfect workout routine for you."
+    ]
+
+    const [randomText, setRandomText] = useState(null);
+
+    useEffect(() => {
+        setRandomText(randomMessage[Math.floor(Math.random() * randomMessage.length)])
+    }, [])
+
     return (
         <View
             style={{
@@ -55,7 +66,6 @@ export default function Screen2({ handleScroll, screenIndex }) {
             }}
         >
             <View style={{ alignItems: "center" }}>
-                {/* Animated text elements with staggered fade-in effect */}
                 <Animated.Text
                     style={{
                         fontSize: HP(4),
@@ -75,16 +85,19 @@ export default function Screen2({ handleScroll, screenIndex }) {
                         width: WP(60),
                     }}
                 >
-                    Welcome to our app.
+                    Welcome! Let's get you started on your personalized fitness journey.
                 </Animated.Text>
                 <Animated.Text
                     style={{
                         color: MyColors(1).white,
                         opacity: opacity3,
                         fontSize: HP(1.6),
+                        textAlign: 'center',
+                        width: WP(90),
+                        marginTop: HP(1),
                     }}
                 >
-                    Get personalized workout routines tailored just for you.
+                    {randomText}
                 </Animated.Text>
             </View>
 

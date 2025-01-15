@@ -1,20 +1,11 @@
 import React, { useState, useEffect } from "react";
 import { useNavigation } from "expo-router";
 import { useAuth } from "@/components/auth/authProvider";
-import {
-    setDoc,
-    doc,
-    getDoc,
-    updateDoc,
-    collection,
-    Firestore,
-    getFirestore,
-    getDocs,
-} from "firebase/firestore";
+import { setDoc, doc, getDoc, updateDoc, collection, getDocs } from "firebase/firestore";
 import { db } from "@/components/firebase/config";
 import { getAuth } from "firebase/auth";
 
-const addToRecent = async (item) => {
+export const addToRecent = async (item) => {
     let complete = false;
 
     try {
@@ -33,7 +24,6 @@ const addToRecent = async (item) => {
         console.error("Error saving recent", error);
         complete = false;
     }
-
     return complete;
 };
 

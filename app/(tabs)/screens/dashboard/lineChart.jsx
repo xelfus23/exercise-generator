@@ -151,7 +151,7 @@ const LineChartBlock = ({
         },
         [progress, currentWeekOffset],
         [allDaysInAWeek]
-    ); // Recalculate on offset change
+    );
 
     const nextWeek = () => {
         setCurrentWeekOffset((prevOffset) => prevOffset + 1);
@@ -355,8 +355,8 @@ const LineChartBlock = ({
                                 >
                                     {Number(item.date) === 1
                                         ? `${calculateMonth(
-                                              Number(item.month)
-                                          )}`
+                                            Number(item.month)
+                                        )}`
                                         : ""}
                                 </Text>
                                 <Text
