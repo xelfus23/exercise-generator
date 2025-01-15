@@ -29,7 +29,7 @@ import Loading from "../../../../components/customs/loading";
 import { useAuth } from "@/components/auth/authProvider";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import { LinearGradient } from "expo-linear-gradient";
-import style from "@/app/(tabs)/auth/authStyles";
+import { LoginRegisterStyle } from "../../auth/authStyles";
 import ExerciseHandler from "../exercises/exercisehandler";
 import Slider from "@react-native-community/slider";
 import { useSharedValue } from "react-native-reanimated";
@@ -37,7 +37,6 @@ import { AntDesign } from "@expo/vector-icons";
 import { Audio } from "expo-av";
 import { throttle } from "lodash";
 
-const { LoginRegisterStyle } = style;
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
 export default function HWmodal() {
@@ -659,10 +658,10 @@ const BirthDate = ({
                                     },
                                     selectedBirthDay === day
                                         ? {
-                                              backgroundColor:
-                                                  MyColors(0.8).green,
-                                              borderRadius: WP(2),
-                                          }
+                                            backgroundColor:
+                                                MyColors(0.8).green,
+                                            borderRadius: WP(2),
+                                        }
                                         : null,
                                 ]}
                                 onPress={() => day && setBirthDay(day)}
@@ -676,8 +675,8 @@ const BirthDate = ({
                                         },
                                         !day
                                             ? {
-                                                  color: "transparent",
-                                              }
+                                                color: "transparent",
+                                            }
                                             : null,
                                     ]}
                                 >
@@ -975,15 +974,15 @@ const RenderItemHeight = React.memo(
                                 index % 10 === 0
                                     ? HP(2)
                                     : index % 5 === 0
-                                    ? HP(1.6)
-                                    : HP(1.2),
+                                        ? HP(1.6)
+                                        : HP(1.2),
                             color: MyColors(0.8).white,
                             top:
                                 index % 10 === 0
                                     ? -HP(0.4)
                                     : index % 5 === 0
-                                    ? -HP(0.3)
-                                    : -HP(0.1),
+                                        ? -HP(0.3)
+                                        : -HP(0.1),
                         }}
                     >
                         |
@@ -1364,8 +1363,8 @@ const heightAndWeightStyles = (value, index, selectedHeightAndWeight) =>
                 index % 10 === 0
                     ? -HP(0.4)
                     : index % 5 === 0
-                    ? -HP(0.3)
-                    : -HP(0.1),
+                        ? -HP(0.3)
+                        : -HP(0.1),
             fontWeight:
                 selectedHeightAndWeight === value?.value ? "bold" : "normal",
         },
@@ -1492,7 +1491,7 @@ const ActivityLevel = ({
                                     style={{
                                         color:
                                             index ===
-                                            ActivityLevels.length -
+                                                ActivityLevels.length -
                                                 1 -
                                                 sliderValue // Adjust index to match reversed array
                                                 ? MyColors(0.8).green
@@ -1922,100 +1921,100 @@ const BodyFatPercentageScreen = ({
     const circumferences =
         selectedGender === "Male"
             ? [
-                  {
-                      name: "Waist",
-                      value: selectedBodyMeasurements.waist,
-                      setter: setSelectedBodyMeasurements,
-                      instructions: [
-                          "First, let's measure your waist.",
-                          "Measure around the narrowest part of your waist, typically just above the belly button.",
-                          "Relax your abdomen and breathe out naturally while measuring to avoid tensing the muscles.",
-                          "Keep the tape measure parallel to the floor",
-                      ],
-                  },
-                  {
-                      name: "Neck",
-                      value: selectedBodyMeasurements.neck,
-                      setter: setSelectedBodyMeasurements,
-                      instructions: [
-                          "And last, let's measure your neck.",
-                          `Wrap the tape around the neck, just below your Adam’s apple.`,
-                          "Keep the tape level and snug, but avoid compressing the skin.",
-                          "Stand straight and look forward during this measurement.",
-                      ],
-                  },
-              ]
+                {
+                    name: "Waist",
+                    value: selectedBodyMeasurements.waist,
+                    setter: setSelectedBodyMeasurements,
+                    instructions: [
+                        "First, let's measure your waist.",
+                        "Measure around the narrowest part of your waist, typically just above the belly button.",
+                        "Relax your abdomen and breathe out naturally while measuring to avoid tensing the muscles.",
+                        "Keep the tape measure parallel to the floor",
+                    ],
+                },
+                {
+                    name: "Neck",
+                    value: selectedBodyMeasurements.neck,
+                    setter: setSelectedBodyMeasurements,
+                    instructions: [
+                        "And last, let's measure your neck.",
+                        `Wrap the tape around the neck, just below your Adam’s apple.`,
+                        "Keep the tape level and snug, but avoid compressing the skin.",
+                        "Stand straight and look forward during this measurement.",
+                    ],
+                },
+            ]
             : selectedGender === "Female"
-            ? [
-                  {
-                      name: "Waist",
-                      value: selectedBodyMeasurements.waist,
-                      setter: setSelectedBodyMeasurements.waist,
-                      instructions: [
-                          "First, let's measure your waist.",
-                          "Measure around the narrowest part of your waist, typically just above the belly button.",
-                          "Relax your abdomen and breathe out naturally while measuring to avoid tensing the muscles.",
-                          "Keep the tape measure parallel to the floor",
-                      ],
-                  },
-                  {
-                      name: "Hip",
-                      value: selectedBodyMeasurements.hip,
-                      setter: setSelectedBodyMeasurements.hip,
-                      instructions: [
-                          "Second, let's measure your hip.",
-                          "Stand with your feet together and measure around the widest part of your hips and buttocks.",
-                          "Ensure the tape is snug but not too tight, and it should remain parallel to the floor.",
-                          "This measurement is usually taken at the fullest part of the hips.",
-                      ],
-                  },
-                  {
-                      name: "Neck",
-                      value: selectedBodyMeasurements.neck,
-                      setter: setSelectedBodyMeasurements.neck,
-                      instructions: [
-                          "And last, let's measure your neck.",
-                          "Wrap the tape around the neck, just at the base of your neck.",
-                          "Keep the tape level and snug, but avoid compressing the skin.",
-                          "Stand straight and look forward during this measurement.",
-                      ],
-                  },
-              ]
-            : [
-                  {
-                      name: "Waist",
-                      value: selectedBodyMeasurements.waist,
-                      setter: setSelectedBodyMeasurements.waist,
-                      instructions: [
-                          "First, let's measure your waist.",
-                          "Measure around the narrowest part of your waist, typically just above the belly button.",
-                          "Relax your abdomen and breathe out naturally while measuring to avoid tensing the muscles.",
-                          "Keep the tape measure parallel to the floor",
-                      ],
-                  },
-                  {
-                      name: "Hip",
-                      value: selectedBodyMeasurements.hip,
-                      setter: setSelectedBodyMeasurements.hip,
-                      instructions: [
-                          "And now, let's measure your hip.",
-                          "Stand with your feet together and measure around the widest part of your hips and buttocks.",
-                          "Ensure the tape is snug but not too tight, and it should remain parallel to the floor.",
-                          "This measurement is usually taken at the fullest part of the hips.",
-                      ],
-                  },
-                  {
-                      name: "Neck",
-                      value: selectedBodyMeasurements.neck,
-                      setter: setSelectedBodyMeasurements.neck,
-                      instructions: [
-                          "And last, let's measure your neck.",
-                          "Wrap the tape around the neck, just below the Adam’s apple for men and at the base of the neck for women.",
-                          "Keep the tape level and snug, but avoid compressing the skin.",
-                          "Stand straight and look forward during this measurement.",
-                      ],
-                  },
-              ];
+                ? [
+                    {
+                        name: "Waist",
+                        value: selectedBodyMeasurements.waist,
+                        setter: setSelectedBodyMeasurements.waist,
+                        instructions: [
+                            "First, let's measure your waist.",
+                            "Measure around the narrowest part of your waist, typically just above the belly button.",
+                            "Relax your abdomen and breathe out naturally while measuring to avoid tensing the muscles.",
+                            "Keep the tape measure parallel to the floor",
+                        ],
+                    },
+                    {
+                        name: "Hip",
+                        value: selectedBodyMeasurements.hip,
+                        setter: setSelectedBodyMeasurements.hip,
+                        instructions: [
+                            "Second, let's measure your hip.",
+                            "Stand with your feet together and measure around the widest part of your hips and buttocks.",
+                            "Ensure the tape is snug but not too tight, and it should remain parallel to the floor.",
+                            "This measurement is usually taken at the fullest part of the hips.",
+                        ],
+                    },
+                    {
+                        name: "Neck",
+                        value: selectedBodyMeasurements.neck,
+                        setter: setSelectedBodyMeasurements.neck,
+                        instructions: [
+                            "And last, let's measure your neck.",
+                            "Wrap the tape around the neck, just at the base of your neck.",
+                            "Keep the tape level and snug, but avoid compressing the skin.",
+                            "Stand straight and look forward during this measurement.",
+                        ],
+                    },
+                ]
+                : [
+                    {
+                        name: "Waist",
+                        value: selectedBodyMeasurements.waist,
+                        setter: setSelectedBodyMeasurements.waist,
+                        instructions: [
+                            "First, let's measure your waist.",
+                            "Measure around the narrowest part of your waist, typically just above the belly button.",
+                            "Relax your abdomen and breathe out naturally while measuring to avoid tensing the muscles.",
+                            "Keep the tape measure parallel to the floor",
+                        ],
+                    },
+                    {
+                        name: "Hip",
+                        value: selectedBodyMeasurements.hip,
+                        setter: setSelectedBodyMeasurements.hip,
+                        instructions: [
+                            "And now, let's measure your hip.",
+                            "Stand with your feet together and measure around the widest part of your hips and buttocks.",
+                            "Ensure the tape is snug but not too tight, and it should remain parallel to the floor.",
+                            "This measurement is usually taken at the fullest part of the hips.",
+                        ],
+                    },
+                    {
+                        name: "Neck",
+                        value: selectedBodyMeasurements.neck,
+                        setter: setSelectedBodyMeasurements.neck,
+                        instructions: [
+                            "And last, let's measure your neck.",
+                            "Wrap the tape around the neck, just below the Adam’s apple for men and at the base of the neck for women.",
+                            "Keep the tape level and snug, but avoid compressing the skin.",
+                            "Stand straight and look forward during this measurement.",
+                        ],
+                    },
+                ];
 
     // const calculateBodyFatPercentage = (
     //     selectedBodyMeasurements,
@@ -2678,8 +2677,7 @@ const SubmitScreen = ({
                     <Text style={submitStyles.value}>
                         {selectedGoal?.map(
                             (v, i) =>
-                                `• ${v} ${
-                                    i !== selectedGoal.length - 1 ? "\n" : ""
+                                `• ${v} ${i !== selectedGoal.length - 1 ? "\n" : ""
                                 }`
                         )}
                     </Text>
@@ -2756,8 +2754,7 @@ const SubmitScreen = ({
                     <Text style={submitStyles.value}>
                         {selectedPlaces?.map(
                             (v, i) =>
-                                `• ${v} ${
-                                    i !== selectedPlaces.length - 1 ? "\n" : ""
+                                `• ${v} ${i !== selectedPlaces.length - 1 ? "\n" : ""
                                 }`
                         )}
                     </Text>
@@ -2890,10 +2887,10 @@ const NextButtons = ({
                         {lastIndex
                             ? "Submit"
                             : skip
-                            ? "Continue"
-                            : !skipIndex || isContinue
-                            ? "Next"
-                            : "Skip"}
+                                ? "Continue"
+                                : !skipIndex || isContinue
+                                    ? "Next"
+                                    : "Skip"}
                     </Text>
                 ) : (
                     <Loading />
