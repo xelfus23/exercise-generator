@@ -1,4 +1,8 @@
-import { DarkTheme, DefaultTheme, ThemeProvider, } from "@react-navigation/native";
+import {
+    DarkTheme,
+    DefaultTheme,
+    ThemeProvider,
+} from "@react-navigation/native";
 import { useFonts } from "expo-font";
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
@@ -9,7 +13,13 @@ import { MenuProvider } from "react-native-popup-menu";
 import { useSegments, useRouter, Slot } from "expo-router";
 import { useColorScheme } from "@/hooks/useColorScheme";
 import { AuthContextProvider, useAuth } from "@/components/auth/authProvider";
+import { View } from "react-native";
 import { MyColors } from "@/constants/myColors";
+import Loading from "@/components/customs/loading";
+import {
+    widthPercentageToDP as WP,
+    heightPercentageToDP as HP,
+} from "react-native-responsive-screen";
 
 SplashScreen.preventAutoHideAsync();
 
@@ -46,11 +56,25 @@ export default function RootLayout() {
     }, [loaded]);
 
     if (!loaded) {
-        return null;
+        return (
+            <View
+                style={{
+                    flex: 1,
+                    justifyContent: "center",
+                    alignItems: "center",
+                }}
+            >
+                <View style={{ width: WP(70), height: HP(10) }}>
+                    <Loading />
+                </View>
+            </View>
+        );
     }
 
     return (
-        <ThemeProvider value={colorScheme === "dark" ? DarkTheme : DefaultTheme}>
+        <ThemeProvider
+            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+        >
             <MenuProvider>
                 <AuthContextProvider>
                     <MainLayout />

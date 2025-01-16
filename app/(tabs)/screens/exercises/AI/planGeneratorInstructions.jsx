@@ -349,6 +349,9 @@ const planGeneratorInstructions = (data) => {
         - Must be 0 if the exercise type is duration.
         - Number of reps of the exercise.
 
+        distance:
+        - Always in kilometers
+
         sets:
         - Number of sets of the exercise.
 

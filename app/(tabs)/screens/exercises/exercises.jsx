@@ -9,24 +9,17 @@ import {
     SafeAreaView,
     ScrollView,
     FlatList,
-    StyleSheet,
-    ImageBackground,
     Modal,
-    Image,
     Animated,
-    Easing,
     TextInput,
     Pressable,
-    PanResponder,
 } from "react-native";
-import React, { useState, useLayoutEffect, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "@/components/auth/authProvider";
 import { MyColors } from "@/constants/myColors.jsx";
 import CustomHeader from "@/components/customs/CustomHeader";
 import Exercise from "./modal.jsx";
-import { Feather, FontAwesome6, Ionicons } from "@expo/vector-icons";
-import { setDoc, doc } from "firebase/firestore";
-import { db } from "@/components/firebase/config";
+import { Feather } from "@expo/vector-icons";
 import ProgressBar from "react-native-progress/Bar.js";
 import { useNavigation } from "expo-router";
 import Loading from "@/components/customs/loading.jsx";
@@ -50,6 +43,12 @@ import {
     MenuTrigger,
 } from "react-native-popup-menu";
 import LottieView from "lottie-react-native";
+import ExerciseDescriptions from "./descriptions/exercisedescription.jsx";
+import RecommendedItems from "./recommendedItems.jsx";
+import Zstyles from "./styles.jsx";
+
+const RStyles = Zstyles.RStyles;
+const levelStyles = Zstyles.levelStyles;
 
 const Exercises = ({ route }) => {
     const {
@@ -61,12 +60,6 @@ const Exercises = ({ route }) => {
         progress,
         completedExerciseToday,
     } = useAuth();
-    const [selectedItem, setSelectedItem] = useState(null);
-    const [showModal, setShowModal] = useState(false);
-    const navigation = useNavigation();
-    const currentUser = getAuth().currentUser;
-    const [errorGenerating, setErrorGenerating] = useState(null);
-    const data = userData();
     const {
         exerciseGenerator,
         upgradeExercisePlan,
@@ -74,16 +67,27 @@ const Exercises = ({ route }) => {
         getStorage,
         addUpgradeToDatabase,
     } = generator();
+    const data = userData();
+    const [selectedItem, setSelectedItem] = useState(null);
+    const [showModal, setShowModal] = useState(false);
+    const navigation = useNavigation();
+    const currentUser = getAuth().currentUser;
+    const [errorGenerating, setErrorGenerating] = useState(null);
     const [userInput, setUserInput] = useState(null);
     const [generating, setGenerating] = useState(false);
     const [selectedPlan, setSelectedPlan] = useState(null);
     const [generatingText, setGeneratingText] = useState(null);
-
     const [selectedMainPlan, setSelectedMainPlan] = useState(null);
-
     const [busy, setBusy] = useState(false);
     const menuRef = useRef(null);
     const scrollViewRef2 = useRef(null);
+    const [descShown, setDescShown] = useState(false);
+    const moveHorizontal = useRef(new Animated.Value(-WP(100))).current;
+    const moveVertical = useRef(new Animated.Value(0)).current; // Starting position
+    const btnRotate = useRef(new Animated.Value(0)).current;
+    const [activeIndex, setActiveIndex] = useState(0);
+    const scrollViewRef123 = useRef(null);
+    const scrollViewRef = useRef(null);
 
     const runGenerator = async () => {
         console.log("running generator");
@@ -129,239 +133,25 @@ const Exercises = ({ route }) => {
             updateUserData(currentUser.uid);
         }
     };
-    // end of function
 
     useEffect(() => {
         if (exercisePlans.length === 0) {
             console.log("No exercise plan");
             runGenerator();
         }
-    }, [exercisePlans]); // Dependency array will run whenever the user changes
+    }, [exercisePlans]);
 
     useEffect(() => {
         if (selectedItem) {
-            setShowModal(true); // Opens the modal when an item is selected
+            setShowModal(true); 
         }
     }, [selectedItem]);
 
     const closeModal = () => {
         setShowModal(false);
-        setSelectedItem(null); // Ensure selectedItem is cleared after closing the modal
+        setSelectedItem(null);
     };
 
-    const recommendedItems = ({ item, index }) => {
-        const exe = item.exercise;
-        const plan = item.plan;
-
-        return (
-            <ImageBackground style={styles.itemContainer} resizeMode="center">
-                <View>
-                    <View style={styles.itemLabelContainer}>
-                        <Text
-                            style={{
-                                fontSize: HP(3),
-                                color:
-                                    exe?.name !== "Rest Day"
-                                        ? MyColors(0.8).white
-                                        : MyColors(1).green,
-                                fontWeight: "bold",
-                                paddingHorizontal: WP(2),
-                                elevation: WP(4),
-                                shadowColor: MyColors(0.2).white,
-                                borderRadius: WP(10),
-                                width: "auto",
-                            }}
-                        >
-                            {exe?.name === "Rest Day"
-                                ? plan?.title.replace(": Week 1", "") +
-                                  " " +
-                                  exe?.name
-                                : exe?.name}
-                        </Text>
-                        {exe?.name !== "Rest Day" && (
-                            <Text
-                                style={{
-                                    color: MyColors(1).yellow,
-                                    fontSize: HP(1.2),
-                                    paddingHorizontal: WP(2),
-                                }}
-                            >
-                                {plan?.title.replace(": Week 1", "")}
-                            </Text>
-                        )}
-                    </View>
-
-                    <Text style={styles.itemDescription}>
-                        {exe?.description}
-                    </Text>
-                </View>
-
-                <View
-                    style={{
-                        flexDirection: "row",
-                        alignItems: "center",
-                        gap: WP(1),
-                    }}
-                >
-                    {exe?.completed === true && (
-                        <Text
-                            style={{
-                                color: MyColors(1).green,
-                                padding: WP(1),
-                                borderRadius: WP(2),
-                            }}
-                        >
-                            DONE todayExercise
-                        </Text>
-                    )}
-
-                    {exe?.name !== "Rest Day" && (
-                        <TouchableOpacity
-                            style={{ width: WP(13) }}
-                            onPress={() => setSelectedItem({ item, index })}
-                            disabled={exe?.completed === true}
-                        >
-                            {exe?.completed !== true ? (
-                                <Feather
-                                    style={levelStyles().button}
-                                    name="arrow-right-circle"
-                                    size={HP(5)}
-                                    color={MyColors(1).green}
-                                />
-                            ) : (
-                                <AntDesign
-                                    style={levelStyles().button}
-                                    name={"checkcircleo"}
-                                    size={HP(2)}
-                                    color={
-                                        exe?.completed === false
-                                            ? MyColors(1).gray
-                                            : MyColors(1).green
-                                    }
-                                />
-                            )}
-                        </TouchableOpacity>
-                    )}
-                </View>
-            </ImageBackground>
-        );
-    };
-
-    const [dayCount, setDayCount] = useState(1);
-    const [weekCount, setWeekCount] = useState(0);
-
-    const RenderItem1 = ({ plan }) => {
-        useEffect(() => {
-            const today = new Date();
-            let weekNumber;
-
-            const todayFormatted = today.toLocaleString("en-US", {
-                month: "numeric",
-                day: "numeric",
-                year: "numeric",
-                timeZone: "Asia/Manila",
-            });
-
-            const todayWeekDay = today.toLocaleString("en-US", {
-                weekday: "long",
-                timeZone: "Asia/Manila",
-            });
-
-            const todayParts = todayFormatted.split("/");
-
-            const newTodayFormatted = `${todayWeekDay}, ${
-                todayParts[0] - 1
-            }/${Number(todayParts[1])}/${todayParts[2].trim()}`;
-
-            plan?.weeks?.map((week, index) => {
-                week?.[`week${index + 1}`]?.forEach((day) => {
-                    const dayFormatted = `${day?.weekday}, ${day?.month}/${day?.date}/${day?.year}`;
-
-                    if (dayFormatted === newTodayFormatted) {
-                        let dayC = 1;
-                        weekNumber = index;
-                        while (dayC <= 7) {
-                            const exercises = day[`Day${dayC}`];
-                            if (exercises) {
-                                setDayCount(dayC);
-                            }
-                            dayC++;
-                        }
-                    }
-                });
-            });
-
-            setWeekCount(weekNumber);
-        }, [plan]);
-
-        return (
-            <View
-                style={{
-                    flexDirection: "row",
-                    justifyContent: "center",
-                    alignItems: "center",
-                }}
-            >
-                {selectedMainPlan?.weeks?.[weekCount]?.[
-                    `week${weekCount + 1}`
-                ]?.map((day, index) =>
-                    index !== 6 ? (
-                        <View key={`day${index}`}>
-                            <View style={[RStyles(dayCount, index).dayButton]}>
-                                <Text style={RStyles().dayNumber}>
-                                    {index + 1}
-                                </Text>
-                            </View>
-                            <View
-                                style={{
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                }}
-                            >
-                                <Entypo
-                                    name="triangle-up"
-                                    size={HP(2)}
-                                    color={
-                                        dayCount === index + 1
-                                            ? MyColors(1).green
-                                            : "transparent"
-                                    }
-                                />
-                            </View>
-                        </View>
-                    ) : (
-                        <View key={`day${index}`}>
-                            <View style={RStyles(dayCount, index).day7}>
-                                <Text
-                                    style={RStyles(dayCount, index).dayNumber}
-                                >
-                                    {index + 1}
-                                </Text>
-                            </View>
-                            <View
-                                style={{
-                                    justifyContent: "center",
-                                    alignItems: "center",
-                                }}
-                            >
-                                <Entypo
-                                    name="triangle-up"
-                                    size={HP(2)}
-                                    color={
-                                        dayCount === index + 1
-                                            ? MyColors(1).green
-                                            : "transparent"
-                                    }
-                                />
-                            </View>
-                        </View>
-                    )
-                )}
-            </View>
-        );
-    };
-
-    const scrollViewRef = useRef(null);
 
     const handlePlanPress = (item) => {
         setSelectedPlan(item);
@@ -378,11 +168,6 @@ const Exercises = ({ route }) => {
             setSelectedPlan(null);
         }, 100);
     };
-
-    const [descShown, setDescShown] = useState(false);
-    const moveHorizontal = useRef(new Animated.Value(-WP(100))).current;
-    const moveVertical = useRef(new Animated.Value(0)).current; // Starting position
-    const btnRotate = useRef(new Animated.Value(0)).current;
 
     const showDes = (tapped) => {
         const verticalValue = descShown ? 0 : HP(80);
@@ -417,7 +202,11 @@ const Exercises = ({ route }) => {
         }
     };
 
-    const scrollViewRef123 = useRef(null);
+    const itemScrolls = (event) => {
+        const scrollX = event.nativeEvent.contentOffset.x;
+        const currentIndex = Math.round(scrollX / WP(100));
+        setActiveIndex(currentIndex);
+    };
 
     const showDesc = (item) => {
         setBusy(true);
@@ -444,13 +233,6 @@ const Exercises = ({ route }) => {
         }, 500);
     };
 
-    const [activeIndex, setActiveIndex] = useState(0);
-
-    const itemScrolls = (event) => {
-        const scrollX = event.nativeEvent.contentOffset.x;
-        const currentIndex = Math.round(scrollX / WP(100));
-        setActiveIndex(currentIndex);
-    };
     return (
         <ScrollView
             scrollEnabled={false}
@@ -538,234 +320,16 @@ const Exercises = ({ route }) => {
                             </Pressable>
                         </View>
 
-                        <Animated.ScrollView
-                            style={{
-                                width: WP(100),
-                                height: HP(68),
-                                transform: [{ translateX: moveHorizontal }],
-                                position: "absolute",
-                                top: HP(9),
-                            }}
-                            ref={scrollViewRef123}
-                            horizontal
-                            scrollEnabled={false}
-                        >
-                            <ScrollView
-                                style={{
-                                    width: WP(100),
-                                }}
-                                contentContainerStyle={{
-                                    gap: HP(1),
-                                }}
-                            >
-                                {exercisePlans?.map((item) => (
-                                    <TouchableOpacity
-                                        key={item.title}
-                                        onPress={() => showDesc(item)}
-                                        disabled={busy}
-                                    >
-                                        <Animated.View
-                                            style={{
-                                                padding: HP(2),
-                                                borderWidth: 1,
-                                                marginHorizontal: HP(1),
-                                                borderColor: MyColors(1).gray,
-                                                borderRadius: WP(4),
-                                                flexDirection: "row",
-                                                alignItems: "center",
-                                                justifyContent: "space-between",
-                                            }}
-                                        >
-                                            <Text
-                                                style={{
-                                                    color: MyColors(0.8).white,
-                                                    fontSize: HP(1) + WP(1),
-                                                }}
-                                            >
-                                                {item.title.replace(
-                                                    ": Week 1",
-                                                    ""
-                                                )}
-                                            </Text>
-
-                                            <Feather
-                                                style={levelStyles().button}
-                                                name="arrow-right-circle"
-                                                size={HP(3)}
-                                                color={MyColors(1).green}
-                                            />
-                                        </Animated.View>
-                                    </TouchableOpacity>
-                                ))}
-                            </ScrollView>
-                            {selectedMainPlan && (
-                                <View
-                                    style={{
-                                        width: WP(100),
-                                    }}
-                                >
-                                    <View
-                                        style={{
-                                            borderBottomWidth: 1,
-                                            borderColor: MyColors(1).gray,
-                                            paddingVertical: WP(2),
-                                        }}
-                                    >
-                                        <View
-                                            style={{
-                                                flexDirection: "row",
-                                            }}
-                                        >
-                                            <Text
-                                                style={[
-                                                    styles.itemLabel,
-                                                    {
-                                                        marginLeft: WP(3),
-                                                        marginTop: HP(1),
-                                                    },
-                                                ]}
-                                            >
-                                                Day
-                                            </Text>
-                                            <RenderItem1
-                                                plan={selectedMainPlan}
-                                            />
-                                        </View>
-                                    </View>
-
-                                    <ScrollView contentContainerStyle={{}}>
-                                        <View
-                                            style={{
-                                                gap: WP(2),
-                                                padding: HP(2),
-                                                width: WP(100),
-                                            }}
-                                        >
-                                            <Text
-                                                style={{
-                                                    color: MyColors(0.8).white,
-                                                    fontSize: HP(1.5),
-                                                    textAlign: "justify",
-                                                }}
-                                            >
-                                                {
-                                                    selectedMainPlan?.planDescription
-                                                }
-                                            </Text>
-
-                                            <Text
-                                                style={{
-                                                    color: MyColors(1).green,
-                                                    fontWeight: "bold",
-                                                    fontSize: HP(1.5),
-                                                }}
-                                            >
-                                                By doing this todayExercise plan
-                                                you are expected to:
-                                            </Text>
-
-                                            <View style={{ gap: WP(1) }}>
-                                                {selectedMainPlan?.generalObjectives?.map(
-                                                    (o, index) => (
-                                                        <Text
-                                                            key={index + o}
-                                                            style={{
-                                                                color: MyColors(
-                                                                    0.8
-                                                                ).white,
-                                                                fontSize:
-                                                                    HP(1.5),
-                                                            }}
-                                                        >
-                                                            - {o}
-                                                        </Text>
-                                                    )
-                                                )}
-                                            </View>
-                                        </View>
-
-                                        <View
-                                            style={{
-                                                width: WP(100),
-                                                backgroundColor:
-                                                    MyColors(1).gray,
-                                                height: 1,
-                                            }}
-                                        />
-
-                                        <View style={{ padding: HP(2) }}>
-                                            <View style={{ gap: HP(1) }}>
-                                                <Text
-                                                    style={{
-                                                        color: MyColors(1)
-                                                            .green,
-                                                        fontWeight: "bold",
-                                                        fontSize: HP(2.5),
-                                                    }}
-                                                >
-                                                    Week {weekCount + 1}
-                                                </Text>
-
-                                                <Text
-                                                    style={{
-                                                        color: MyColors(0.8)
-                                                            .white,
-                                                        fontSize: HP(1.5),
-                                                    }}
-                                                >
-                                                    {
-                                                        selectedMainPlan
-                                                            ?.weeks?.[0]
-                                                            .weekDescription
-                                                    }
-                                                </Text>
-
-                                                <Text
-                                                    style={{
-                                                        color: MyColors(1)
-                                                            .green,
-                                                        fontWeight: "bold",
-                                                        fontSize: HP(1.5),
-                                                    }}
-                                                >
-                                                    The objectives for this week
-                                                    are:
-                                                </Text>
-
-                                                <View style={{ gap: WP(1) }}>
-                                                    {selectedMainPlan?.weeks?.[0]?.weekObjectives?.map(
-                                                        (o, index) => (
-                                                            <Text
-                                                                key={o + index}
-                                                                style={{
-                                                                    color: MyColors(
-                                                                        0.8
-                                                                    ).white,
-                                                                    fontSize:
-                                                                        HP(1.5),
-                                                                }}
-                                                            >
-                                                                - {o}
-                                                            </Text>
-                                                        )
-                                                    )}
-                                                </View>
-                                            </View>
-                                        </View>
-
-                                        <View
-                                            style={{
-                                                width: WP(100),
-                                                backgroundColor:
-                                                    MyColors(1).gray,
-                                                height: 1,
-                                            }}
-                                        />
-                                    </ScrollView>
-                                </View>
-                            )}
-                        </Animated.ScrollView>
-
+                        <ExerciseDescriptions
+                            moveHorizontal={moveHorizontal}
+                            exercisePlans={exercisePlans}
+                            selectedMainPlan={selectedMainPlan}
+                            busy={busy}
+                            setBusy={setBusy}
+                            hideDesc={hideDesc}
+                            showDesc={showDesc}
+                            scrollViewRef123={scrollViewRef123}
+                        />
                         <Animated.View
                             style={{
                                 transform: [{ translateY: moveVertical }],
@@ -802,7 +366,7 @@ const Exercises = ({ route }) => {
                                                     },
                                                 ]}
                                             >
-                                                Today's todayExercise
+                                                My Exercise Today
                                             </Text>
                                         </View>
 
@@ -873,7 +437,7 @@ const Exercises = ({ route }) => {
                                                             .exerciseContainer
                                                     }
                                                 >
-                                                    {recommendedItems({
+                                                    {RecommendedItems({
                                                         item: todayExercise,
                                                         index: exerciseIndex,
                                                     })}
@@ -1176,130 +740,3 @@ const Exercises = ({ route }) => {
 };
 
 export default Exercises;
-
-const RStyles = (dayCount, dayIndex) =>
-    StyleSheet.create({
-        dayButton: {
-            width: dayCount === dayIndex + 1 ? HP(4.5) : HP(4),
-            backgroundColor:
-                dayIndex !== 6
-                    ? dayCount === dayIndex + 1
-                        ? MyColors(0.8).green
-                        : MyColors(0.1).white
-                    : MyColors(1).yellow,
-            borderRadius: WP(2),
-            justifyContent: "center",
-            alignItems: "center",
-            marginHorizontal: WP(1.2),
-            aspectRatio: 1,
-        },
-        container: {
-            flexDirection: "row",
-        },
-        dayNumber: [
-            dayIndex !== 6
-                ? {
-                      color: MyColors(1).white,
-                      fontSize: WP(3.5),
-                      fontWeight: "bold",
-                  }
-                : {
-                      color: MyColors(1).white,
-                      fontSize: WP(4),
-                      fontWeight: "bold",
-                  },
-        ],
-        day7: {
-            width: HP(5.5),
-            aspectRatio: 1,
-            justifyContent: "center",
-            alignItems: "center",
-            backgroundColor:
-                dayCount === dayIndex + 1
-                    ? MyColors(1).green
-                    : MyColors(0.1).white,
-            borderRadius: WP(8),
-            padding: WP(1),
-            marginLeft: WP(1),
-        },
-    });
-
-const levelStyles = (level) =>
-    StyleSheet.create({
-        button: {
-            width: WP(12),
-            borderRadius: WP(10),
-        },
-        text: {
-            color:
-                level === "Beginner"
-                    ? MyColors(0.5).green
-                    : level === "Intermediate"
-                    ? MyColors(0.5).yellow
-                    : level === "Advanced"
-                    ? MyColors(0.5).red
-                    : "",
-            borderRadius: WP(1),
-            fontSize: 12,
-            paddingHorizontal: WP(2),
-            width: "70%",
-            elevation: WP(4),
-            shadowColor:
-                level === "Beginner"
-                    ? MyColors(0.1).green
-                    : level === "Intermediate"
-                    ? MyColors(0.1).yellow
-                    : level === "Advanced"
-                    ? MyColors(0.1).red
-                    : "",
-        },
-    });
-
-const styles = StyleSheet.create({
-    dotContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-    },
-    itemLabelContainer: {
-        width: "100%",
-    },
-    container: {
-        gap: HP(2),
-    },
-    labelContainer: {
-        flexDirection: "row",
-        alignItems: "center",
-        gap: WP(4),
-    },
-    itemContainer: {
-        width: WP(90),
-        marginHorizontal: WP(5),
-        gap: WP(3),
-        borderColor: MyColors(1).green,
-        flexDirection: "column",
-        justifyContent: "space-between",
-    },
-    itemLabel: {
-        fontSize: WP(5),
-        color: MyColors(0.8).white,
-        fontWeight: "bold",
-        paddingHorizontal: WP(2),
-        elevation: WP(4),
-        shadowColor: MyColors(0.2).white,
-        borderRadius: WP(10),
-        width: "auto",
-    },
-    itemDescription: {
-        fontSize: HP(1.2) + WP(1),
-        color: MyColors(1).white,
-        backgroundColor: MyColors(0.5).black,
-        padding: WP(2),
-        borderRadius: WP(2),
-    },
-    title: {
-        fontSize: WP(4),
-        color: MyColors(1).green,
-        marginHorizontal: WP(5),
-        marginTop: HP(2),
-    },
-});

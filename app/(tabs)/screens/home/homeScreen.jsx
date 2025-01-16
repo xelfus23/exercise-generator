@@ -34,6 +34,21 @@ export default function HomeScreen() {
     const [pastStepCount, setPastStepCount] = useState(0); // Steps before app opened
     const [calories, setCalories] = useState(1500);
 
+    const twoSum = (nums, target) => {
+        let store = {};
+        for (let i = 0; i < nums.length; i++) {
+            let complement = target - nums[i];
+            if(complement in store){
+                return [store[complement], i]
+            }
+            store[nums[i]] = i
+        }
+    };
+
+    useEffect(() => {
+        console.log(twoSum([2, 7, 11, 15], 9));
+    }, []);
+
     const blocksData = [
         {
             id: 1,
@@ -120,18 +135,11 @@ export default function HomeScreen() {
         const { x } = event.nativeEvent.contentOffset;
         setScrollPosition(x);
     };
+    const [isTutorial, setIsTutorial] = useState(true);
 
-    return (
-        <SafeAreaView style={styles.mainContainer}>
-            {showAlert && (
-                <CustomAlert
-                    message={"Do you want to save the changes?"}
-                    cancelText={"No"}
-                    acceptText={"Yes"}
-                />
-            )}
-            <CustomHeader title={"Home"} />
-            {showLoadingScreen && (
+    if (!user?.firstName) {
+        return (
+            <SafeAreaView style={styles.mainContainer}>
                 <Modal>
                     <View
                         style={{
@@ -146,6 +154,77 @@ export default function HomeScreen() {
                         </View>
                     </View>
                 </Modal>
+            </SafeAreaView>
+        );
+    }
+
+    return (
+        <SafeAreaView style={styles.mainContainer}>
+            {showAlert && (
+                <CustomAlert
+                    message={"Do you want to save the changes?"}
+                    cancelText={"No"}
+                    acceptText={"Yes"}
+                />
+            )}
+            <CustomHeader title={"Home"} />
+
+            {isTutorial && (
+                <View
+                    style={{
+                        backgroundColor: MyColors(0.5).green,
+                        borderRadius: WP(4),
+                        position: "absolute",
+                        bottom: HP(2),
+                        left: WP(10),
+                        justifyContent: "center",
+                        alignItems: "center",
+                        padding: WP(3),
+                        borderWidth: 1,
+                        borderColor: MyColors(1).green,
+                    }}
+                >
+                    <Text
+                        style={{
+                            color: MyColors(1).white,
+                            textAlign: "center",
+                            fontWeight: "bold",
+                            fontSize: HP(1.6),
+                        }}
+                    >
+                        Tap to view your dashboard
+                    </Text>
+                    <View
+                        style={{
+                            left: 30, // Position it outside the bubble on the right
+                            borderLeftWidth: 10,
+                            borderLeftColor: MyColors(1).green,
+                            position: "absolute",
+                            width: 0,
+                            height: 0,
+                            borderBottomWidth: 5,
+                            borderTopColor: "transparent",
+                            borderBottomWidth: 10,
+                            borderBottomColor: "transparent",
+                            bottom: -10,
+                        }}
+                    />
+                    <View
+                        style={{
+                            left: 20, // Position it outside the bubble on the right
+                            borderRightWidth: 10,
+                            borderRightColor: MyColors(1).green,
+                            position: "absolute",
+                            width: 0,
+                            height: 0,
+                            borderBottomWidth: 5,
+                            borderTopColor: "transparent",
+                            borderBottomWidth: 10,
+                            borderBottomColor: "transparent",
+                            bottom: -10,
+                        }}
+                    />
+                </View>
             )}
             <ScrollView style={styles.container}>
                 <Banner user={user} />

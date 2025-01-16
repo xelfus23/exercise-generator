@@ -1,4 +1,3 @@
-import { StackedBarChart } from "react-native-chart-kit";
 import { LinearGradient } from "expo-linear-gradient";
 import { MyColors } from "@/constants/myColors";
 import {
@@ -26,7 +25,6 @@ import AntDesign from "@expo/vector-icons/AntDesign";
 const StackedBarChartBlock = ({ allDaysInAWeek, progress, exercisePlans }) => {
     const { user } = useAuth();
     const today = new Date();
-    // Interpolate progress value to width
     const PBar = ({ value }) => {
         const progress = useRef(new Animated.Value(0)).current;
 
@@ -157,7 +155,7 @@ const StackedBarChartBlock = ({ allDaysInAWeek, progress, exercisePlans }) => {
                             style={{
                                 color: MyColors(0.8).green,
                                 fontWeight: "bold",
-                                fontSize: HP(2),
+                                fontSize: HP(1.5),
                             }}
                         >
                             {selectedPlan?.title}
@@ -223,7 +221,7 @@ const StackedBarChartBlock = ({ allDaysInAWeek, progress, exercisePlans }) => {
                                                         style={{
                                                             color: MyColors(0.8)
                                                                 .white,
-                                                            fontSize: HP(1.5),
+                                                            fontSize: HP(1.3),
                                                         }}
                                                     >
                                                         {plan.title}
