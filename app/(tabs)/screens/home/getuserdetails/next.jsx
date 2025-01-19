@@ -1,17 +1,32 @@
 import { View, Text, TouchableOpacity } from "react-native";
-import React from "react";
-import { heightPercentageToDP as HP, widthPercentageToDP as WP, } from "react-native-responsive-screen";
+import React, { useState } from "react";
+import {
+    heightPercentageToDP as HP,
+    widthPercentageToDP as WP,
+} from "react-native-responsive-screen";
 import { MyColors } from "@/constants/myColors";
-import Loading from '../../../../../components/customs/loading';
+import Loading from "../../../../../components/customs/loading";
 
-export default function NextButtons({ next, handleSubmit, error, isLoading, back, firstIndex, lastIndex, skip, skipIndex, isContinue }) {
+export default function NextButtons({
+    next,
+    handleSubmit,
+    error,
+    isLoading,
+    back,
+    firstIndex,
+    lastIndex,
+    skip,
+    skipIndex,
+    isContinue,
+}) {
+    const [isError] = useState(error ? true : false);
     return (
         <View
             style={{ alignItems: "center", flexDirection: "row", gap: WP(10) }}
         >
             {!firstIndex && !skip && (
                 <TouchableOpacity
-                    disabled={error}
+                    disabled={isError}
                     onPress={back}
                     style={{
                         padding: 5,
@@ -39,7 +54,7 @@ export default function NextButtons({ next, handleSubmit, error, isLoading, back
             )}
 
             <TouchableOpacity
-                disabled={error}
+                disabled={isError}
                 onPress={next || handleSubmit}
                 style={{
                     padding: 5,
@@ -65,10 +80,10 @@ export default function NextButtons({ next, handleSubmit, error, isLoading, back
                         {lastIndex
                             ? "Submit"
                             : skip
-                                ? "Continue"
-                                : !skipIndex || isContinue
-                                    ? "Next"
-                                    : "Skip"}
+                            ? "Continue"
+                            : !skipIndex || isContinue
+                            ? "Next"
+                            : "Skip"}
                     </Text>
                 ) : (
                     <Loading />
@@ -76,4 +91,4 @@ export default function NextButtons({ next, handleSubmit, error, isLoading, back
             </TouchableOpacity>
         </View>
     );
-};
+}

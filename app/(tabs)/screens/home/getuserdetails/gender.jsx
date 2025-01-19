@@ -132,7 +132,6 @@ export default function Gender({ selectedGender, setSelectedGender, next }) {
                 handleSubmit={nextButton}
                 error={error}
                 back={backButton}
-                firstIndex={true}
             />
         </View>
     );

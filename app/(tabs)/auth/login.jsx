@@ -10,6 +10,7 @@ import {
     Animated,
     SafeAreaView,
     StatusBar,
+    Image,
 } from "react-native";
 import { MyColors } from "@/constants/myColors.jsx";
 import { useAuth } from "@/components/auth/authProvider.jsx";
@@ -20,7 +21,8 @@ import {
 } from "react-native-responsive-screen";
 import Loading from "@/components/customs/loading.jsx";
 import { useNavigation } from "expo-router";
-import { LoginRegisterStyle } from "./authStyles";
+import Styles from "./authStyles";
+const LoginRegisterStyle = Styles.LoginRegisterStyle;
 
 const Login = () => {
     const navigator = useNavigation();

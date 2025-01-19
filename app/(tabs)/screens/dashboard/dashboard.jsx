@@ -59,7 +59,7 @@ export default function Dashboard() {
 
                         </Text>
                         <TouchableOpacity style={{
-                            backgroundColor: MyColors(1).green,
+                            backgroundColor: MyColors(0.5).green,
                             padding: WP(2),
                             borderRadius: WP(4),
                         }}
@@ -67,7 +67,7 @@ export default function Dashboard() {
                         >
                             <Text style={{
                                 fontWeight: 'bold',
-                                color: MyColors(1).black
+                                color: MyColors(1).white
                             }}>
                                 Generate Exercise
                             </Text>

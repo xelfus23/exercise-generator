@@ -2,5 +2,7 @@
     "cSpell.words": [
         "firestore",
         "Pressable"
-    ]
+    ],
+    "editor.fontSize": 14,
+    "editor.fontVariations": false
 }

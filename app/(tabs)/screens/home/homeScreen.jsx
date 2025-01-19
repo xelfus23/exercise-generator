@@ -23,31 +23,13 @@ import Blocks from "./blocks";
 import HWmodal from "./hwmodal";
 import Banner from "./banner";
 export default function HomeScreen() {
-    const { user } = useAuth();
+    const { user, isLoading, showModal, setShowModal } = useAuth();
     const [showAlert, setShowAlert] = useState(false);
-    const [showModal, setShowModal] = useState(false);
-    const [showLoadingScreen, setShowLoadingScreen] = useState(true);
     const [scrollPosition, setScrollPosition] = useState(0); // State to track scroll position
-
     const [pedometerAvailable, setPedometerAvailable] = useState("Checking");
     const [stepCount, setStepCount] = useState(0); // Live step count
     const [pastStepCount, setPastStepCount] = useState(0); // Steps before app opened
     const [calories, setCalories] = useState(1500);
-
-    const twoSum = (nums, target) => {
-        let store = {};
-        for (let i = 0; i < nums.length; i++) {
-            let complement = target - nums[i];
-            if(complement in store){
-                return [store[complement], i]
-            }
-            store[nums[i]] = i
-        }
-    };
-
-    useEffect(() => {
-        console.log(twoSum([2, 7, 11, 15], 9));
-    }, []);
 
     const blocksData = [
         {
@@ -73,74 +55,42 @@ export default function HomeScreen() {
     useEffect(() => {
         const initializePedometer = async () => {
             try {
-                // Check if Pedometer is available
-                const isAvailable = await Pedometer.isAvailableAsync();
-                if (!isAvailable) {
-                    setPedometerAvailable("Not available");
-                    return;
-                }
-
-                // Request permissions
-                const { status } = await Pedometer.requestPermissionsAsync();
-                if (status !== "granted") {
-                    setPedometerAvailable("Permission not granted");
-                    return;
-                }
-
                 setPedometerAvailable("Available");
-
-                if (Platform.OS === "ios") {
-                    const startOfDay = new Date();
-                    startOfDay.setHours(0, 0, 0, 0);
-                    const result = await Pedometer.getStepCountAsync(
-                        startOfDay,
-                        new Date()
-                    );
-                    setPastStepCount(result.steps);
-                }
-
-                // Start live step count tracking for both iOS and Android
-                const subscription = Pedometer.watchStepCount((result) => {
-                    setStepCount(result.steps);
-                });
-
-                // Cleanup the subscription on unmount
-                return () => subscription.remove();
             } catch (e) {
                 console.error("Error initializing Pedometer:", e);
+                setPedometerAvailable("Not available");
             }
         };
 
         initializePedometer();
-    }, []);
-
-    useEffect(() => {
-        if (
-            !user?.bodyMetrics ||
-            !user?.gender ||
-            !user?.activityLevel ||
-            !user?.fitnessLevel ||
-            !user?.mainGoal ||
-            !user?.birthDate ||
-            !user?.selectedPlace
-        ) {
-            setShowModal(true);
-        } else {
-            setShowModal(false);
-        }
-        setShowLoadingScreen(false);
     }, [user]);
 
     const handleScroll = (event) => {
         const { x } = event.nativeEvent.contentOffset;
         setScrollPosition(x);
     };
+
     const [isTutorial, setIsTutorial] = useState(true);
 
-    if (!user?.firstName) {
-        return (
-            <SafeAreaView style={styles.mainContainer}>
-                <Modal>
+    return (
+        <SafeAreaView style={styles.mainContainer}>
+            {showModal && <HWmodal setShowModal={setShowModal} />}
+            {showAlert && (
+                <CustomAlert
+                    message={"Do you want to save the changes?"}
+                    cancelText={"No"}
+                    acceptText={"Yes"}
+                />
+            )}
+            {isLoading && (
+                <Modal
+                    style={{
+                        flex: 1,
+                        justifyContent: "center",
+                        alignItems: "center",
+                        zIndex: 101,
+                    }}
+                >
                     <View
                         style={{
                             flex: 1,
@@ -154,19 +104,8 @@ export default function HomeScreen() {
                         </View>
                     </View>
                 </Modal>
-            </SafeAreaView>
-        );
-    }
-
-    return (
-        <SafeAreaView style={styles.mainContainer}>
-            {showAlert && (
-                <CustomAlert
-                    message={"Do you want to save the changes?"}
-                    cancelText={"No"}
-                    acceptText={"Yes"}
-                />
             )}
+
             <CustomHeader title={"Home"} />
 
             {isTutorial && (
@@ -258,8 +197,6 @@ export default function HomeScreen() {
                         keyExtractor={(item) => item.id.toString()}
                     />
                 </View>
-
-                {showModal && <HWmodal setShowModal={setShowModal} />}
             </ScrollView>
         </SafeAreaView>
     );

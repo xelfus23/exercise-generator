@@ -4,7 +4,7 @@ import { heightPercentageToDP as HP, widthPercentageToDP as WP } from "react-nat
 import styles from '../authStyles'
 import { useState } from "react";
 import { Feather } from "@expo/vector-icons";
-
+import Loading from "@/components/customs/loading";
 const LoginRegisterStyle = styles.LoginRegisterStyle
 
 export default function PasswordRegistration({ setPassword, onNext, scrolling, onBack }) {

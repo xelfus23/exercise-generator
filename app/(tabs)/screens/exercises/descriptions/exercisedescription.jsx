@@ -16,7 +16,7 @@ import { useState, useEffect } from "react";
 import { Entypo } from "@expo/vector-icons";
 import styles from "./../styles";
 const RStyles = styles.RStyles;
-const levelStyles = styles.levelStyles
+const levelStyles = styles.levelStyles;
 
 export default function exerciseDescriptions({
     moveHorizontal,

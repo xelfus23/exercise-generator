@@ -127,6 +127,7 @@ export default function Exercise({ selectedItem, closeModal }) {
         navigation.navigate("ExerciseContent", {
             exercise: item,
             value: value,
+            index: index,
             sets: sets,
         });
     };

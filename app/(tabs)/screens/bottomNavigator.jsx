@@ -26,7 +26,6 @@ const Tab = createBottomTabNavigator();
 export default function BottomTabNav() {
     const [tabBarVisible, setTabBarVisible] = useState(true);
 
-
     return (
         <View style={{ flex: 1 }}>
             <Tab.Navigator
@@ -39,11 +38,13 @@ export default function BottomTabNav() {
                         display: tabBarVisible ? "flex" : "none",
                         justifyContent: "center", // Center the tab bar items
                         alignItems: "center", // Center the tab bar items
-                        paddingTop: HP(0.5),
+                        paddingTop: HP(0.1),
                     },
                     tabBarItemStyle: {
                         justifyContent: "center",
                         alignItems: "center",
+                        borderTopColor: MyColors(1).gray,
+                        borderTopWidth: 1,
                     },
                     tabBarIconStyle: {
                         justifyContent: "center",

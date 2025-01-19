@@ -1,7 +1,14 @@
 import React, { useState, useEffect } from "react";
 import { useNavigation } from "expo-router";
 import { useAuth } from "@/components/auth/authProvider";
-import { setDoc, doc, getDoc, updateDoc, collection, getDocs } from "firebase/firestore";
+import {
+    setDoc,
+    doc,
+    getDoc,
+    updateDoc,
+    collection,
+    getDocs,
+} from "firebase/firestore";
 import { db } from "@/components/firebase/config";
 import { getAuth } from "firebase/auth";
 
@@ -88,9 +95,7 @@ export const addComplete = async (
             await updateDoc(exercisePlansDocRef, {
                 exercisePlans: exercisePlans, // Update the 'exercisePlans' field within the document
             });
-
             console.log("Successfully updated exercise");
-            await updateUserData(currentUser.uid);
         } else {
             console.error("Exercise plans document not found.");
         }

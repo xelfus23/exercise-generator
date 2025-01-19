@@ -25,7 +25,7 @@ import { useNavigation } from "expo-router";
 import Loading from "@/components/customs/loading.jsx";
 import generator from "./exerciseGenerator.jsx";
 import { getAuth } from "firebase/auth";
-import AntDesign from "@expo/vector-icons/AntDesign";
+import { AntDesign } from "@expo/vector-icons";
 import { userData } from "@/components/auth/userData.jsx";
 import Entypo from "@expo/vector-icons/Entypo";
 import OtherExercise from "./otherExercise/otherExercise.jsx";
@@ -51,6 +51,8 @@ const RStyles = Zstyles.RStyles;
 const levelStyles = Zstyles.levelStyles;
 
 const Exercises = ({ route }) => {
+    const { setTabBarVisible } = route.params ? route.params : false;
+
     const {
         user,
         updateUserData,
@@ -135,6 +137,10 @@ const Exercises = ({ route }) => {
     };
 
     useEffect(() => {
+        setTabBarVisible && setTabBarVisible(true);
+    }, []);
+
+    useEffect(() => {
         if (exercisePlans.length === 0) {
             console.log("No exercise plan");
             runGenerator();
@@ -143,7 +149,7 @@ const Exercises = ({ route }) => {
 
     useEffect(() => {
         if (selectedItem) {
-            setShowModal(true); 
+            setShowModal(true);
         }
     }, [selectedItem]);
 
@@ -151,7 +157,6 @@ const Exercises = ({ route }) => {
         setShowModal(false);
         setSelectedItem(null);
     };
-
 
     const handlePlanPress = (item) => {
         setSelectedPlan(item);
@@ -329,6 +334,7 @@ const Exercises = ({ route }) => {
                             hideDesc={hideDesc}
                             showDesc={showDesc}
                             scrollViewRef123={scrollViewRef123}
+                            setSelectedItem={setSelectedItem}
                         />
                         <Animated.View
                             style={{
@@ -440,6 +446,8 @@ const Exercises = ({ route }) => {
                                                     {RecommendedItems({
                                                         item: todayExercise,
                                                         index: exerciseIndex,
+                                                        setSelectedItem:
+                                                            setSelectedItem,
                                                     })}
                                                 </View>
                                             )

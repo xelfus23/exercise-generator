@@ -1,24 +1,34 @@
-import { View, ScrollView, Modal, Alert, StatusBar, Animated, } from "react-native";
+import {
+    View,
+    ScrollView,
+    Modal,
+    Alert,
+    StatusBar,
+    Animated,
+} from "react-native";
 import { useState, useEffect } from "react";
 import { db } from "@/components/firebase/config";
 import { setDoc, doc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
-import { heightPercentageToDP as HP, widthPercentageToDP as WP } from "react-native-responsive-screen";
+import {
+    heightPercentageToDP as HP,
+    widthPercentageToDP as WP,
+} from "react-native-responsive-screen";
 import { MyColors } from "@/constants/myColors";
 import { useAuth } from "@/components/auth/authProvider";
 
-import Gender from './getuserdetails/gender';
-import BirthDate from './getuserdetails/birthdate';
-import HeightAndWeight from './getuserdetails/heightweight';
-import BodyFatPercentage from './getuserdetails/bodyfatpercentage';
-import MainGoal from './getuserdetails/maingoal';
-import PreferablePlaces from './getuserdetails/place'
-import ActivityLevel from './getuserdetails/activity';
-import SelectFitnessLevel from './getuserdetails/fitness';
-import SubmitScreen from './getuserdetails/submit'
+import NickName from "./getuserdetails/nickname";
+import Gender from "./getuserdetails/gender";
+import BirthDate from "./getuserdetails/birthdate";
+import HeightAndWeight from "./getuserdetails/heightweight";
+import BodyFatPercentage from "./getuserdetails/bodyfatpercentage";
+import MainGoal from "./getuserdetails/maingoal";
+import PreferablePlaces from "./getuserdetails/place";
+import ActivityLevel from "./getuserdetails/activity";
+import SelectFitnessLevel from "./getuserdetails/fitness";
+import SubmitScreen from "./getuserdetails/submit";
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
 
 const heightOptions = Array.from({ length: 1441 }, (_, i) => ({
     label: (i * 0.1 + 80).toFixed(1),
@@ -30,20 +40,22 @@ const weightOptions = Array.from({ length: 2141 }, (_, i) => ({
     value: (i * 0.1 + 20).toFixed(1),
 }));
 
-
 export default function HWmodal({ setShowModal }) {
-    const { updateUserData, user } = useAuth();
+    const { updateUserData, user, } = useAuth();
     const today = new Date();
 
+    const [nickName, setNickName] = useState(null);
     const [selectedGender, setSelectedGender] = useState(null);
-
     const [birthYear, setBirthYear] = useState(today.getFullYear());
     const [birthMonth, setBirthMonth] = useState(today.getMonth());
     const [birthDay, setBirthDay] = useState(today.getDate());
     const [selectedGoal, setSelectedGoal] = useState([]);
-    const [selectedHeightAndWeight, setSelectedHeightAndWeight] = useState(null);
-    const [selectedActivityLevel, setSelectedActivityLevel] = useState("Sedentary");
-    const [selectedFitnessLevel, setSelectedFitnessLevel] = useState("Beginner");
+    const [selectedHeightAndWeight, setSelectedHeightAndWeight] =
+        useState(null);
+    const [selectedActivityLevel, setSelectedActivityLevel] =
+        useState("Sedentary");
+    const [selectedFitnessLevel, setSelectedFitnessLevel] =
+        useState("Beginner");
     const [selectedPlaces, setSelectedPlaces] = useState(null);
     const [selectedBodyMeasurements, setSelectedBodyMeasurements] = useState({
         waist: 0,
@@ -55,6 +67,9 @@ export default function HWmodal({ setShowModal }) {
     const [isSubmit, setIsSubmit] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isBirthYear, setIsBirthYear] = useState(false);
+
+    const [heightOffsetX, setHeightOffsetX] = useState(null);
+    const [weightOffsetX, setWeightOffsetX] = useState(null);
 
     useEffect(() => {
         if (birthDay && birthMonth && birthYear) {
@@ -77,6 +92,7 @@ export default function HWmodal({ setShowModal }) {
 
     const HandleSubmit = async () => {
         if (
+            nickName &&
             selectedGender &&
             isBirthYear &&
             selectedGoal.length > 0 &&
@@ -91,6 +107,7 @@ export default function HWmodal({ setShowModal }) {
                 await setDoc(
                     doc(db, "users", user.uid),
                     {
+                        nickName: nickName,
                         gender: selectedGender,
                         birthDate: {
                             year: birthYear,
@@ -107,7 +124,7 @@ export default function HWmodal({ setShowModal }) {
                     { merge: true }
                 );
                 await updateUserData(user.uid);
-                setShowModal(false)
+                setShowModal(false);
             } catch (error) {
                 console.error("Error updating document: ", error);
                 Alert.alert("Error updating profile", error.message);
@@ -135,6 +152,11 @@ export default function HWmodal({ setShowModal }) {
     }, [index]); // Only include index as the dependency
 
     const screens = [
+        <NickName
+            setNickName={setNickName}
+            nickName={nickName}
+            next={nextButton}
+        />,
         <Gender
             setSelectedGender={setSelectedGender}
             selectedGender={selectedGender}
@@ -155,6 +177,10 @@ export default function HWmodal({ setShowModal }) {
             next={nextButton}
             heightOptions={heightOptions}
             weightOptions={weightOptions}
+            setWeightOffsetX={setWeightOffsetX}
+            weightOffsetX={weightOffsetX}
+            setHeightOffsetX={setHeightOffsetX}
+            heightOffsetX={heightOffsetX}
         />,
         <BodyFatPercentage
             selectedBodyMeasurements={selectedBodyMeasurements}
@@ -267,7 +293,7 @@ export default function HWmodal({ setShowModal }) {
     };
 
     return (
-        <Modal>
+        <Modal style={{ zIndex: 100 }}>
             <StatusBar
                 backgroundColor={MyColors(1).black}
                 barStyle={"light-content"}
@@ -289,6 +315,4 @@ export default function HWmodal({ setShowModal }) {
     );
 }
 
-
 //------------------------------------------------------------------------------------------------------------------------------------------------------------------------
-

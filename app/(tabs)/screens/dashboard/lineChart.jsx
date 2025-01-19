@@ -341,7 +341,7 @@ const LineChartBlock = ({
                                 style={{
                                     justifyContent: "center",
                                     alignItems: "center",
-                                    width: '3%',
+                                    width: '4%',
                                 }}
                             >
                                 <Text

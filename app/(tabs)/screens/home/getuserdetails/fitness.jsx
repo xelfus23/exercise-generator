@@ -1,11 +1,15 @@
-import { View, Text, TouchableOpacity, ScrollView, } from "react-native";
+import { View, Text, TouchableOpacity, ScrollView } from "react-native";
 import React, { useState } from "react";
-import { heightPercentageToDP as HP, widthPercentageToDP as WP } from "react-native-responsive-screen";
+import {
+    heightPercentageToDP as HP,
+    widthPercentageToDP as WP,
+} from "react-native-responsive-screen";
 import { MyColors } from "@/constants/myColors";
 import { LinearGradient } from "expo-linear-gradient";
-import styles from '../../../auth/authStyles'
-const LoginRegisterStyle = styles.LoginRegisterStyle
-import NextButtons from './next'
+import Xstyles from "../../../auth/authStyles";
+const LoginRegisterStyle = Xstyles.LoginRegisterStyle;
+const styles = Xstyles.style;
+import NextButtons from "./next";
 
 export default function SelectFitnessLevel({
     setSelectedFitnessLevel,
@@ -102,7 +106,13 @@ export default function SelectFitnessLevel({
     };
 
     return (
-        <View style={[styles.container]}>
+        <View
+            style={{
+                justifyContent: "center",
+                alignItems: "center",
+                marginTop: HP(5)
+            }}
+        >
             <Text
                 style={{
                     fontSize: WP(5),
@@ -237,4 +247,4 @@ export default function SelectFitnessLevel({
             </ScrollView>
         </View>
     );
-};
+}

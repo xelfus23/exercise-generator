@@ -1,7 +1,10 @@
 import { useNavigation } from "expo-router";
-import { heightPercentageToDP as HP, widthPercentageToDP as WP } from "react-native-responsive-screen";
-import { View, TouchableOpacity, Text } from "react-native";
-import { MyColors } from '../../../constants/myColors'
+import {
+    heightPercentageToDP as HP,
+    widthPercentageToDP as WP,
+} from "react-native-responsive-screen";
+import { View, TouchableOpacity, Text, Image } from "react-native";
+import { MyColors } from "../../../constants/myColors";
 
 export default function Screen1({ handleScroll }) {
     const navigator = useNavigation();
@@ -10,10 +13,10 @@ export default function Screen1({ handleScroll }) {
         <View
             style={{
                 width: WP(100),
-                backgroundColor: MyColors(1).black,
                 justifyContent: "center",
                 alignItems: "center",
                 gap: WP(3),
+                backgroundColor: MyColors(1).black,
             }}
         >
             <TouchableOpacity
@@ -25,6 +28,7 @@ export default function Screen1({ handleScroll }) {
                     alignItems: "center",
                     justifyContent: "center",
                     borderRadius: 100,
+                    zIndex: 2,
                 }}
             >
                 <Text
@@ -33,6 +37,7 @@ export default function Screen1({ handleScroll }) {
                         textAlign: "center",
                         color: MyColors(1).white,
                         fontWeight: "bold",
+                        zIndex: 2,
                     }}
                 >
                     Get Started
@@ -46,13 +51,12 @@ export default function Screen1({ handleScroll }) {
                         textAlign: "center",
                         color: MyColors(0.6).white,
                         fontWeight: "bold",
+                        zIndex: 2,
                     }}
                 >
                     Already have an account?
                 </Text>
             </TouchableOpacity>
         </View>
-    )
-
-
+    );
 }

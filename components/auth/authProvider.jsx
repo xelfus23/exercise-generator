@@ -27,22 +27,21 @@ const AuthContext = createContext();
 export const AuthContextProvider = ({ children }) => {
     const [user, setUser] = useState(null);
     const [isAuthenticated, setIsAuthenticated] = useState(false);
-
     const otherExercise = user?.otherExercise || [];
     const exercisePlans = user?.exercisePlans || [];
-
     const currentUser = getAuth().currentUser;
     const today = new Date();
-
     const [progress, setProgress] = useState(0);
     const [weekProgress, setWeekProgress] = useState(0);
     const [exercisePlanInAWeek, setExercisePlanInAWeek] = useState([]);
     const [allCompletedExercise, setAllCompletedExercise] = useState([]);
     const [completedExerciseToday, setCompletedExerciseToday] = useState([]);
     const [todayExercise, setTodayExercise] = useState([]);
+    const [showModal, setShowModal] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
 
     const calculateEverything = () => {
-        console.log(exercisePlans)
+        console.log(exercisePlans);
         if (exercisePlans?.length === 0) return;
 
         let exercisePlanToday = [],
@@ -65,9 +64,9 @@ export const AuthContextProvider = ({ children }) => {
 
         const todayParts = todayFormatted.split("/"); // Split by '/'
 
-        const newTodayFormatted = `${todayWeekDay}, ${todayParts[0] - 1}/${Number(
-            todayParts[1]
-        )}/${todayParts[2].trim()}`; // Rebuild formatted date with adjusted month
+        const newTodayFormatted = `${todayWeekDay}, ${
+            todayParts[0] - 1
+        }/${Number(todayParts[1])}/${todayParts[2].trim()}`; // Rebuild formatted date with adjusted month
 
         const todayYear = new Date().getFullYear();
         const todayMonth = new Date().getMonth(); // Adjust to 1-based month
@@ -235,11 +234,40 @@ export const AuthContextProvider = ({ children }) => {
             }
         });
         return unsubscribe;
-    }, []);
+    }, [user]);
 
     useEffect(() => {
         updateUserData(currentUser?.uid);
     }, [isAuthenticated]);
+
+    const checkNestedObject = (obj) => {
+        if (obj === null || typeof obj !== "object") {
+            return obj !== null && obj !== undefined && obj !== "";
+        }
+        return (
+            obj &&
+            Object.values(obj)?.every((value) => {
+                if (typeof value === "object" && value !== null) {
+                    return checkNestedObject(value); // Recursively check nested objects
+                }
+                return value !== null && value !== undefined && value !== "";
+            })
+        );
+    };
+
+    const checkInitializationStatus = async (obj) => {
+        const notEmpty = await checkNestedObject(obj);
+
+        if (!notEmpty) {
+            setShowModal(true);
+        } else {
+            setShowModal(false);
+        }
+    };
+
+    useEffect(() => {
+        checkInitializationStatus(user);
+    }, [user]);
 
     const updateUserData = async (userID) => {
         try {
@@ -276,11 +304,11 @@ export const AuthContextProvider = ({ children }) => {
                 });
 
                 setUser({
-                    ...user,
                     firstName: data.firstName,
                     lastName: data.lastName,
                     email: currentUser.email,
                     emailVerified: currentUser.emailVerified,
+                    nickName: data.nickName,
                     gender: data.gender,
                     mainGoal: data.mainGoal,
                     birthDate: {
@@ -308,6 +336,7 @@ export const AuthContextProvider = ({ children }) => {
                     exercisePlans: exercisePlans,
                     otherExercise: otherExercisePlan,
                 });
+                setIsLoading(false);
             } else {
                 console.log("User document not found.");
             }
@@ -332,6 +361,7 @@ export const AuthContextProvider = ({ children }) => {
     const logout = async () => {
         try {
             await signOut(auth);
+            setIsLoading(true);
             return { success: true };
         } catch (e) {
             return { success: false, msg: e.message, error: e };
@@ -401,6 +431,9 @@ export const AuthContextProvider = ({ children }) => {
                 weekProgress,
                 exercisePlanInAWeek,
                 completedExerciseToday,
+                isLoading,
+                showModal,
+                setShowModal,
             }}
         >
             {children}

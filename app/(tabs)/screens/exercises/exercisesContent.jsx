@@ -10,6 +10,14 @@ import { CountdownCircleTimer } from "react-native-countdown-circle-timer";
 import Feather from "@expo/vector-icons/Feather";
 import Header from "./header";
 import { MyColors } from "@/constants/myColors";
+import { useNavigation } from "expo-router";
+import {
+    heightPercentageToDP as HP,
+    widthPercentageToDP as WP,
+} from "react-native-responsive-screen";
+import { useAuth } from "@/components/auth/authProvider";
+import { addComplete } from "./exercisehandler";
+import { getAuth } from "firebase/auth";
 
 const formatTime = (time) => {
     const minutes = Math.floor(time / 60);
@@ -20,17 +28,27 @@ const formatTime = (time) => {
     )}`;
 };
 
-export default function ExerciseContent({ route }) {
-    const { exercise, value, sets } = route.params; // Exercise type, duration/value, and sets
+export default function ExerciseContent({ route, setTabBarVisible }) {
+    const { exercise, value, index, sets } = route.params; // Exercise type, duration/value, and sets
     const [currentSet, setCurrentSet] = useState(1); // Current set tracker
     const [stage, setStage] = useState("getReady"); // Phases: "getReady", "exercise", "rest", "complete"
     const [timerKey, setTimerKey] = useState(0); // To reset timers
+    const currentUser = getAuth().currentUser;
+
+    const { user, updateUserData, exercisePlans, dayCount } = useAuth();
+
+    const navigation = useNavigation();
 
     useEffect(() => {
         setCurrentSet(1);
         setStage("getReady");
         setTimerKey(0);
     }, []);
+
+    useEffect(() => {
+        setTabBarVisible(false);
+        return () => setTabBarVisible(true);
+    }, [setTabBarVisible]);
 
     const handleNextStage = () => {
         if (stage === "getReady") {
@@ -43,64 +61,117 @@ export default function ExerciseContent({ route }) {
             }
         } else if (stage === "rest") {
             setCurrentSet((prev) => prev + 1);
-            setStage("exercise")
+            setStage("exercise");
         }
         setTimerKey((prev) => prev + 1);
     };
 
-    const completeExercise = () => {
+    const completeExercise = async (item) => {
         console.log("Exercise completed");
-        // Logic to navigate or update progress
+        if (user) {
+            await addComplete(
+                user,
+                item,
+                value,
+                sets,
+                index,
+                exercisePlans,
+                dayCount
+            );
+        }
+        await updateUserData(currentUser.uid);
+        navigation.navigate("ExercisesList", {
+            setTabBarVisible,
+        });
     };
 
     return (
         <SafeAreaView style={styles.mainContainer}>
-            <Header title={`${exercise.exercise.name} - Set ${currentSet} of ${sets}`} />
+            <Header title={`${exercise.exercise.name}`} />
             <View style={styles.content}>
                 {stage === "complete" ? (
                     <View>
                         <Text style={styles.completeText}>
                             Exercise Completed!
                         </Text>
-                        <TouchableOpacity
-                            style={styles.completeButton}
-                            onPress={completeExercise}
+                        <View
+                            style={{
+                                alignItems: "center",
+                                justifyContent: "center",
+                            }}
                         >
-                            <Text style={styles.buttonText}>Finish</Text>
-                        </TouchableOpacity>
+                            <TouchableOpacity
+                                style={styles.completeButton}
+                                onPress={() => completeExercise(exercise)}
+                            >
+                                <Text style={styles.buttonText}>Finish</Text>
+                            </TouchableOpacity>
+                        </View>
                     </View>
                 ) : (
                     <>
                         {exercise.exercise.type === "duration" && (
-                            <CountdownCircleTimer
-                                key={timerKey}
-                                isPlaying
-                                duration={
-                                    stage === "getReady"
-                                        ? 10
-                                        : stage === "exercise"
-                                        ? value
-                                        : 10
-                                }
-                                colors={["#00c896", "#d1a338", "#e64848"]}
-                                colorsTime={[10, 5, 0]}
-                                onComplete={handleNextStage}
-                            >
-                                {({ remainingTime }) => (
-                                    <Text style={styles.time}>
-                                        {stage === "getReady" && "Get Ready"}
-                                        {stage === "exercise" && "Exercise"}
-                                        {stage === "rest" && "Rest"}
-                                        {`\n${formatTime(remainingTime)}`}
+                            <>
+                                <View>
+                                    <Text
+                                        style={{
+                                            color: MyColors(1).white,
+                                            fontWeight: "bold",
+                                            fontSize: HP(2.5),
+                                        }}
+                                    >
+                                        Set number {currentSet} of {sets}
                                     </Text>
-                                )}
-                            </CountdownCircleTimer>
+                                </View>
+                                <View
+                                    style={{
+                                        flex: 2 / 3,
+                                        justifyContent: "center",
+                                        alignItems: "center",
+                                    }}
+                                >
+                                    <CountdownCircleTimer
+                                        key={timerKey}
+                                        isPlaying
+                                        duration={
+                                            stage === "getReady"
+                                                ? 10
+                                                : stage === "exercise"
+                                                ? value
+                                                : 10
+                                        }
+                                        colors={[
+                                            "#00c896",
+                                            "#d1a338",
+                                            "#e64848",
+                                        ]}
+                                        size={HP(35)}
+                                        colorsTime={[10, 5, 0]}
+                                        onComplete={handleNextStage}
+                                    >
+                                        {({ remainingTime }) => (
+                                            <View
+                                                style={{
+                                                    justifyContent: "center",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                <Text style={styles.time}>
+                                                    {formatTime(remainingTime)}
+                                                </Text>
+                                            </View>
+                                        )}
+                                    </CountdownCircleTimer>
+                                </View>
+                            </>
                         )}
                         {exercise.exercise.type === "reps" && (
                             <RepsScreen
                                 value={value}
                                 currentSet={currentSet}
                                 onComplete={handleNextStage}
+                                sets={sets}
+                                setCurrentSet={setCurrentSet}
                             />
                         )}
                         {exercise.exercise.type === "distance" && (
@@ -117,26 +188,39 @@ export default function ExerciseContent({ route }) {
     );
 }
 
-const RepsScreen = ({ value, currentSet, onComplete }) => {
+const RepsScreen = ({ value, currentSet, onComplete, sets, setCurrentSet }) => {
     const [currentRep, setCurrentRep] = useState(1);
 
     const handleNextRep = () => {
         if (currentRep < value) {
-            setCurrentRep((prev) => prev + 1);
+            if (currentSet <= sets) {
+                setCurrentRep((prev) => prev + 1);
+            } else {
+                onComplete();
+            }
         } else {
-            onComplete();
+            if (currentSet == sets) {
+                onComplete();
+            } else {
+                setCurrentRep(0);
+                setCurrentSet((prev) => prev + 1);
+            }
         }
     };
 
     return (
-        <View style={styles.repsContainer}>
+        <View style={styles.content}>
             <Text style={styles.time}>
                 Set {currentSet}: Rep {currentRep} of {value}
             </Text>
-            <TouchableOpacity onPress={handleNextRep} style={styles.nextButton}>
-                <Feather name="arrow-right" size={24} color="white" />
-                <Text style={styles.nextText}>Next Rep</Text>
-            </TouchableOpacity>
+            <View style={{ justifyContent: "center", alignItems: "center" }}>
+                <TouchableOpacity
+                    onPress={handleNextRep}
+                    style={styles.nextButton}
+                >
+                    <Text style={styles.nextText}>Done</Text>
+                </TouchableOpacity>
+            </View>
         </View>
     );
 };
@@ -153,7 +237,7 @@ const DistanceScreen = ({ value, currentSet, onComplete }) => {
     };
 
     return (
-        <View style={styles.repsContainer}>
+        <View style={styles.content}>
             <Text style={styles.time}>
                 Set {currentSet}: {distance} / {value} meters
             </Text>
@@ -174,31 +258,29 @@ const styles = StyleSheet.create({
         backgroundColor: MyColors(1).black,
     },
     content: {
-        justifyContent: "center",
-        alignItems: "center",
         flex: 1,
+        padding: WP(4),
     },
     time: {
         color: MyColors(1).white,
         fontWeight: "bold",
-        fontSize: 24,
+        fontSize: HP(6),
         textAlign: "center",
-    },
-    repsContainer: {
-        alignItems: "center",
     },
     nextButton: {
         marginTop: 20,
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: "#00c896",
+        backgroundColor: MyColors(1).green,
         padding: 10,
-        borderRadius: 5,
+        borderRadius: WP(4),
+        justifyContent: "center",
+        width: WP(40),
     },
     nextText: {
-        marginLeft: 10,
         color: "white",
         fontWeight: "bold",
+        fontSize: HP(1.7),
     },
     completeText: {
         color: MyColors(1).white,
@@ -208,9 +290,13 @@ const styles = StyleSheet.create({
     },
     completeButton: {
         marginTop: 20,
-        backgroundColor: "#00c896",
-        padding: 15,
-        borderRadius: 10,
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: MyColors(1).green,
+        padding: 10,
+        borderRadius: WP(4),
+        justifyContent: "center",
+        width: WP(60),
     },
     buttonText: {
         color: "white",

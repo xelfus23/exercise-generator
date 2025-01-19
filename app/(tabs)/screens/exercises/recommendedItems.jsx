@@ -6,11 +6,12 @@ import {
 import { MyColors } from "../../../../constants/myColors";
 import Ztyles from "./styles";
 import { Feather } from "@expo/vector-icons";
+import { AntDesign } from "@expo/vector-icons";
 
 const styles = Ztyles.Xtyles
 const levelStyles = Ztyles.levelStyles
 
-export default RecommendedItems = ({ item, index }) => {
+export default RecommendedItems = ({ item, index, setSelectedItem }) => {
     const exe = item.exercise;
     const plan = item.plan;
 
@@ -70,7 +71,7 @@ export default RecommendedItems = ({ item, index }) => {
                             borderRadius: WP(2),
                         }}
                     >
-                        DONE todayExercise
+                        Completed
                     </Text>
                 )}
 

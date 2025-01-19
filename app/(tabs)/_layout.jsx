@@ -5,6 +5,12 @@ import getStarted from "./index";
 import DrawerTabNav from "./screens/drawerNavigator";
 import login from "./auth/login";
 import signup from "./auth/signup";
+import { Image, View } from "react-native";
+import {
+    heightPercentageToDP as HP,
+    widthPercentageToDP as WP,
+} from "react-native-responsive-screen";
+import { MyColors } from "@/constants/myColors";
 
 const StartNavigation = () => {
     const Stack = createStackNavigator();
