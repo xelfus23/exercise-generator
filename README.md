@@ -17,7 +17,7 @@ This repository contains a React Native application that generates personalized 
 -   **Workout Plan Display:**
     -   Presents the generated workout plan in a clear and organized format.
     -   Includes details such as exercise names, sets, reps, rest times, and durations.
--   **AI Chatbot Interface**
+-    **AI Chatbot Interface**
     -   Has a user interface for the AI chatbot to make it interactive.
 -   **Firebase Authentication:**
     -   User registration and login with email and password.
@@ -35,69 +35,7 @@ This repository contains a React Native application that generates personalized 
     -   Implements React's `useEffect` hook with a carefully managed dependency array to handle asynchronous state updates in the `AuthContextProvider`.
     -   The use of a boolean `initialCheckDone` state to run the `checkInitializationStatus` only once after the user initially enters details.
 -   **Responsive UI:**
-    -  The UI is created using react native elements and responsive-screen.
-
-## Getting Started
-
-### Prerequisites
-
--   Node.js (v16 or higher)
--   npm or yarn
--   Expo CLI
--   Firebase project
--   Google Gemini API access
-
-### Installation
-
-1.  Clone the repository:
-
-    ```bash
-    git clone [repository-url]
-    cd [repository-directory]
-    ```
-
-2.  Install dependencies:
-
-    ```bash
-    npm install
-    # or
-    yarn install
-    ```
-
-3.  Set up Firebase:
-
-    -   Create a new Firebase project or use an existing one.
-    -   Add your Firebase web configuration to `components/firebase/config.js`:
-
-        ```javascript
-        // Replace with your actual Firebase config
-        const firebaseConfig = {
-          apiKey: "YOUR_API_KEY",
-          authDomain: "YOUR_AUTH_DOMAIN",
-          projectId: "YOUR_PROJECT_ID",
-          storageBucket: "YOUR_STORAGE_BUCKET",
-          messagingSenderId: "YOUR_MESSAGING_SENDER_ID",
-          appId: "YOUR_APP_ID",
-        };
-        ```
-
-4.  Set up the Google Gemini API:
-    -   Set up the Google Gemini API.
-    -   Create an API key and save it in a `.env` file.
-
-        ```env
-         GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"
-        ```
-
-5.  Start the Expo development server:
-
-    ```bash
-    npm start
-    # or
-    yarn start
-    ```
-
-6.  Scan the QR code or use an emulator/simulator to run the app.
+    -   The UI is created using react native elements and responsive-screen.
 
 ## Usage
 
@@ -117,17 +55,7 @@ This repository contains a React Native application that generates personalized 
 -   **Race Condition Handling:** The initial versions of this code encountered a race condition where navigation occurred before data was fully updated. This was solved by the `useEffect` hook that only executes after the user state is updated.
 -   **`useEffect` Dependency Arrays:** Proper use of dependency arrays in `useEffect` hooks is crucial to manage side effects correctly.
 -   **Asynchronous Operations:** The code demonstrates the use of `async/await` for handling asynchronous Firebase operations, state updates, and API requests.
- -  **Single Source of Truth:** The `user` object in `AuthContextProvider` acts as the single source of truth for user data throughout the application.
-
-## Contributing
-
-Feel free to contribute to this project. Here's how:
-
-1.  Fork the repository.
-2.  Create a new branch (`git checkout -b feature/your-feature`).
-3.  Make your changes and commit (`git commit -m "Add some feature"`).
-4.  Push to the branch (`git push origin feature/your-feature`).
-5.  Create a pull request.
+-  **Single Source of Truth:** The `user` object in `AuthContextProvider` acts as the single source of truth for user data throughout the application.
 
 ## License
 
@@ -139,7 +67,7 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 -   [Firebase](https://firebase.google.com/)
 -   [Expo](https://expo.io/)
 -   [Google Gemini API](https://ai.google.dev/gemini-api)
--   [lodash](https://www.npmjs.com/package/lodash)
+-  [lodash](https://www.npmjs.com/package/lodash)
 -   [lottie-react-native](https://www.npmjs.com/package/lottie-react-native)
 -  [react-native-chart-kit](https://www.npmjs.com/package/react-native-chart-kit)
 - [react-native-countdown-circle-timer](https://www.npmjs.com/package/react-native-countdown-circle-timer)
