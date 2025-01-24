@@ -1,5 +1,11 @@
 import React from "react";
-import { StyleSheet, View, Text, ScrollView, TouchableOpacity } from "react-native";
+import {
+    StyleSheet,
+    View,
+    Text,
+    ScrollView,
+    TouchableOpacity,
+} from "react-native";
 import CustomHeader from "../../../../components/customs/CustomHeader";
 import { MyColors } from "@/constants/myColors";
 import {
@@ -32,7 +38,7 @@ export default function Dashboard() {
     return (
         <View style={styles.mainContainer}>
             <CustomHeader title="Dashboard" />
-            <ToDo todayExercise={todayExercise} />
+            <ToDo todayExercise={todayExercise} exercisePlans={exercisePlans} />
             <ScrollView style={styles.container}>
                 <Daily
                     user={user}
@@ -46,8 +52,15 @@ export default function Dashboard() {
                     progress={progress}
                     exercisePlans={exercisePlans}
                 />
-                {todayExercise?.length === 0 ? (
-                    <View style={{ width: WP(100), justifyContent: 'center', alignItems: 'center', display: 'flex' }}>
+                {todayExercise?.length === 0 && exercisePlans.length === 0 ? (
+                    <View
+                        style={{
+                            width: WP(100),
+                            justifyContent: "center",
+                            alignItems: "center",
+                            display: "flex",
+                        }}
+                    >
                         <Text
                             style={{
                                 color: MyColors(1).yellow,
@@ -55,20 +68,23 @@ export default function Dashboard() {
                                 marginVertical: HP(2),
                             }}
                         >
-                            You don't have any todayExercise yet. Please generate
-
+                            You don't have any todayExercise yet. Please
+                            generate
                         </Text>
-                        <TouchableOpacity style={{
-                            backgroundColor: MyColors(0.5).green,
-                            padding: WP(2),
-                            borderRadius: WP(4),
-                        }}
-                            onPress={() => navigation.navigate('Exercises')}
+                        <TouchableOpacity
+                            style={{
+                                backgroundColor: MyColors(0.5).green,
+                                padding: WP(2),
+                                borderRadius: WP(4),
+                            }}
+                            onPress={() => navigation.navigate("Exercises")}
                         >
-                            <Text style={{
-                                fontWeight: 'bold',
-                                color: MyColors(1).white
-                            }}>
+                            <Text
+                                style={{
+                                    fontWeight: "bold",
+                                    color: MyColors(1).white,
+                                }}
+                            >
                                 Generate Exercise
                             </Text>
                         </TouchableOpacity>

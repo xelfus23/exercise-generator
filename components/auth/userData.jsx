@@ -1,18 +1,8 @@
 import { useAuth } from "./authProvider";
 import { useEffect, useState } from "react";
 
-export const userData = () => {
-    const {
-        user,
-        updateUserData,
-        exercise,
-        weekIndexExercise,
-        weekExercise,
-        dayCount,
-        exercisePlans,
-        weekProgress,
-        progress,
-    } = useAuth();
+const UserData = () => {
+    const { user, exercisePlans, weekProgress, progress } = useAuth();
 
     if (!user) return null;
 
@@ -21,8 +11,17 @@ export const userData = () => {
     const [everyExercise, setEveryExercise] = useState([]);
     const [exerciseThisWeek, setExerciseThisWeek] = useState([]);
 
-    const height = user?.bodyMetrics?.heightAndWeight?.height / 100;
-    const weight = user?.bodyMetrics?.heightAndWeight?.weight;
+    const bodyMetrics = user?.bodyMetrics;
+    const heightAndWeight = bodyMetrics?.heightAndWeight;
+    const circumferences = bodyMetrics?.circumferences;
+
+    const birthdate = user?.birthDate;
+    const day = birthdate?.day;
+    const month = birthdate?.month;
+    const year = birthdate?.year;
+
+    const height = heightAndWeight?.height / 100;
+    const weight = heightAndWeight?.weight;
     const BMI = weight / (height * height);
 
     const today = new Date();
@@ -132,128 +131,129 @@ export const userData = () => {
 
     return `
 
-    Date Today:
-        - Today is ${day1.weekday}, ${day1.month}, ${day1.day}, ${day1.year}.
+Date Today:
+- Today is ${day1.weekday}, ${day1.month}, ${day1.day}, ${day1.year}.
 
-    Personal Info: 
-        - First name: ${user?.firstName || "N/A"}
-        - Last name: ${user?.lastName || "N/A"}
-        - Email: ${user?.email || "N/A"}
-        - Email Verified: ${user?.emailVerified || "false"}
-        - Birth year: ${user?.birthDate?.year || "N/A"}
-        - Birth month: ${getMonth(Number(user?.birthDate?.month)) || "N/A"}
-        - Birth day: ${user?.birthDate?.day || "N/A"}
-      
-    Vitals: 
-        - Gender: ${user?.gender || "N/A"}
-        - Height: ${user?.bodyMetrics?.heightAndWeight?.height || "N/A"} ${
-        user?.bodyMetrics?.heightAndWeight?.heightUnit
+Personal Info: 
+- First name: ${user?.firstName || "N/A"}
+- Last name: ${user?.lastName || "N/A"}
+- Email: ${user?.email || "N/A"}
+- Email Verified: ${user?.emailVerified || "false"}
+- Birth year: ${year || "N/A"}
+- Birth month: ${getMonth(Number(month)) || "N/A"}
+- Birth day: ${day || "N/A"}
+    
+Vitals: 
+- Gender: ${user?.gender || "N/A"}
+- Height: ${heightAndWeight?.height || "N/A"} ${heightAndWeight?.heightUnit}
+- Weight: ${heightAndWeight?.weight || "N/A"} ${heightAndWeight?.weightUnit}
+- BMI (Body mass index): ${BMI ? BMI.toFixed(2) : "N/A"}
+- Body Fat Percentage: ${user?.bodyFatPercentage || "N/A"}%
+- Waist Circumference: ${circumferences?.waist || "N/A"} ${
+        circumferences?.unit || ""
     }
-        - Weight: ${user?.bodyMetrics?.heightAndWeight?.weight || "N/A"} ${
-        user?.bodyMetrics?.heightAndWeight?.weightUnit
+- Hip Circumference: ${circumferences?.hip || "N/A"} ${
+        circumferences?.unit || ""
     }
-        - BMI (Body mass index): ${BMI ? BMI.toFixed(2) : "N/A"}
-        - Body Fat Percentage: ${user?.bodyFatPercentage || "N/A"}%
-        - Waist Circumference: ${
-            user?.bodyMetrics?.circumferences?.waist || "N/A"
-        } ${user?.bodyMetrics?.circumferences?.unit || ""}
-        - Hip Circumference: ${
-            user?.bodyMetrics?.circumferences?.hip || "N/A"
-        } ${user?.bodyMeasurements?.unit || ""}
-        - Neck Circumference: ${
-            user?.bodyMetrics?.circumferences?.neck || "N/A"
-        } ${user?.bodyMetrics?.circumferences?.unit || ""}
-        - Blood Pressure: ${user?.bloodPressure || "N/A"}
-        - Heart Rate: ${user?.heartRate || "N/A"} bpm
-        - Resting Heart Rate: ${user?.restingHeartRate || "N/A"} bpm
-        - Oxygen Saturation (SpO2): ${user?.oxygenSaturation || "N/A"}%
-        - Body Temperature: ${user?.bodyTemperature || "N/A"} °C
-      
-    Health & Fitness: 
-        Main goals: 
-          ${
-              user?.mainGoal.map((goal) => `${goal}`).join(", \n          ") ||
-              "N/A"
-          }
-        - Exercise Place: ${user?.selectedPlace || "N/A"}
-        - Activity Level: ${user?.activityLevel || "N/A"}
-        - Fitness Level: ${user?.fitnessLevel || "N/A"}
-        - Health Conditions: ${user?.healthCondition || "N/A"}
-        - Sleep Duration: ${user?.sleepDuration || "N/A"} hours
-        - Water Intake: ${user?.waterIntake || "N/A"} liters
-        - Steps per day: ${user?.dailySteps || "N/A"}
+- Neck Circumference: ${circumferences?.neck || "N/A"} ${
+        circumferences?.unit || ""
+    }
+- Blood Pressure: ${user?.bloodPressure || "N/A"}
+- Heart Rate: ${user?.heartRate || "N/A"} bpm
+- Resting Heart Rate: ${user?.restingHeartRate || "N/A"} bpm
+- Oxygen Saturation (SpO2): ${user?.oxygenSaturation || "N/A"}%
+- Body Temperature: ${user?.bodyTemperature || "N/A"} °C
 
-    Progress: 
-        - Today's Progress: ${progress.toFixed(2) || "N/A"}%
-        - This Week Progress: ${(weekProgress * 100).toFixed(2) || "N/A"}
+Health & Fitness: 
+Main goals: 
+    ${user?.mainGoal.map((goal) => `${goal}`).join(", \n    ") || "N/A"}
+- Exercise Place: ${user?.selectedPlace || "N/A"}
+- Rest Day: ${user?.restDay || "N/A"}
+- Activity Level: ${user?.activityLevel || "N/A"}
+- Fitness Level: ${user?.fitnessLevel || "N/A"}
+- Health Conditions: ${user?.healthCondition || "N/A"}
+- Sleep Duration: ${user?.sleepDuration || "N/A"} hours
+- Water Intake: ${user?.waterIntake || "N/A"} liters
+- Steps per day: ${user?.dailySteps || "N/A"}
 
-    Exercises Plans & Schedules:
+Progress: 
+- Today's Progress: ${progress.toFixed(2) || "N/A"}%
+- This Week Progress: ${(weekProgress * 100).toFixed(2) || "N/A"}
 
-    ${
+Current Exercises Plans & Schedules:
+
+[${
         exercisePlans.length > 0
             ? exercisePlans
                   .map((plan) => {
                       return `
-        Plan: ${plan.title}
-        Description: ${plan.planDescription}
-        Objectives: ${plan?.generalObjectives?.join(", ")}
-        Diet Recommendations: ${plan?.dietRecommendation}
-        ${plan.weeks
-            .map((week, weekIndex) => {
-                return `
-        Week ${weekIndex + 1}:
-        ${week[`week${weekIndex + 1}`]
-            .map((day, dayIndex) => {
-                return `
-            Day ${dayIndex + 1}:
-            Date: ${day.weekday}, ${getMonth(day.month)} ${day.date}, ${
-                    day.year
-                } 
-            Description: ${day.dayDescription}
-            Objectives: ${day?.dayObjectives?.join(", ")}
-            ${
-                day?.[`day${dayIndex + 1}`][0].name === "Rest Day"
-                    ? "Rest Day:"
-                    : "Exercise:"
-            }
-            ${day[`day${dayIndex + 1}`]
-                .map(
-                    (exercise) => `
-                Name: ${exercise.name}
-                Description: ${exercise.description}
-                Benefits: ${exercise.benefits}
-                ${
-                    exercise.type === "duration"
-                        ? `Duration: ${exercise.duration} seconds`
-                        : exercise.type === "reps"
-                        ? `Repeats: ${exercise.reps}`
-                        : exercise.type === "distance"
-                        ? `Distance: ${exercise.distance}`
-                        : ""
-                }
-                Sets: ${exercise.sets || 0}
-                Estimated Calorie Burn: ${exercise.calories || 0} cal
-                Categories: ${exercise?.categories?.join(", ")}
-                Muscle Groups: ${exercise?.muscleGroups?.join(", ")}
-                `
-                )
-                .join("")}
-        `;
-            })
-            .join("")}
-        `;
-            })
-            .join("")}
-        `;
+Plan Title: ${plan.title}
+Description: ${plan.planDescription}
+Objectives: ${plan?.generalObjectives?.join(", ")}
+Diet Recommendations: ${plan?.dietRecommendation}
+${plan.weeks
+    .map((week, weekIndex) => {
+        return `
+Week ${weekIndex + 1}:
+Existing Week Key: ${week.weekKey}
+${week[`week${weekIndex + 1}`]
+    .map((day, dayIndex) => {
+        return `
+    Day ${dayIndex + 1}:
+    Day Key: ${day.dayKey}
+    Date: ${day.weekday}, ${getMonth(day.month)} ${day.date}, ${day.year} 
+    Description: ${day.dayDescription}
+    Objectives: ${day?.dayObjectives?.join(", ")}
+    ${
+        day?.[`day${dayIndex + 1}`][0].name === "Rest Day"
+            ? "Rest Day:"
+            : "Exercise:"
+    }
+    ${day[`day${dayIndex + 1}`]
+        .map(
+            (exercise) => `
+        Name: ${exercise.name}
+        Existing Exercise Key: ${exercise.key}
+        Description: ${exercise.description}
+        Benefits: ${exercise?.benefits?.map(
+            (v) => `
+            - ${v.replace(",", "")}`
+        )}
+        ${
+            exercise.type === "duration"
+                ? `Duration: ${exercise.duration} seconds`
+                : exercise.type === "reps"
+                ? `Repeats: ${exercise.reps}`
+                : exercise.type === "distance"
+                ? `Distance: ${exercise.distance}`
+                : ""
+        }
+        Sets: ${exercise.sets || 0}
+        Estimated Calorie Burn: ${exercise.calories || 0} cal
+        Categories: ${exercise?.categories?.join(", ")}
+        Muscle Groups: ${exercise?.muscleGroups?.join(", ")}
+        `
+        )
+        .join("")}
+`;
+    })
+    .join("")}
+`;
+    })
+    .join("")}
+`;
                   })
                   .join("")
-            : "None"
-    }
+            : `
+        - N/A`
+    }]
 
-    Additional Info:
-        - Smoker: ${user?.isSmoker ? "Yes" : "No"}
-        - Alcohol Consumption: ${user?.alcoholConsumption || "N/A"}
-        - Activity Level: ${user?.activityLevel || "N/A"}
-        - Allergies: ${user?.allergies || "N/A"}
+Additional Info:
+    - Smoker: ${user?.isSmoker ? "Yes" : "No"}
+    - Alcohol Consumption: ${user?.alcoholConsumption || "N/A"}
+    - Activity Level: ${user?.activityLevel || "N/A"}
+    - Allergies: ${user?.allergies || "N/A"}
     `;
 };
+
+export default UserData;

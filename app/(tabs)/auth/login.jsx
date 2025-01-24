@@ -26,11 +26,9 @@ const LoginRegisterStyle = Styles.LoginRegisterStyle;
 
 const Login = () => {
     const navigator = useNavigation();
-    const { login } = useAuth();
-
+    const { login, setIsAuthenticated } = useAuth();
     const [email, setEmail] = useState(null);
     const [password, setPassword] = useState(null);
-
     const [loading, setLoading] = useState(false);
     const [error, setError] = useState(false);
 
@@ -43,6 +41,7 @@ const Login = () => {
                 setError(response.msg), setLoading(false);
             } else {
                 console.log("User logged in successfully");
+                setIsAuthenticated(true);
             }
         } else {
             setTimeout(() => {

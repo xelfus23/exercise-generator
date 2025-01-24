@@ -2,7 +2,9 @@ import React, { useState } from "react";
 import {
     createDrawerNavigator,
     DrawerItemList,
+    DrawerItem, // Import DrawerItem
 } from "@react-navigation/drawer";
+
 import {
     SafeAreaView,
     Text,
@@ -10,6 +12,7 @@ import {
     View,
     Alert,
     StatusBar,
+    StyleSheet,
 } from "react-native";
 import {
     heightPercentageToDP as HP,
@@ -27,12 +30,12 @@ import { useNavigation } from "@react-navigation/native";
 import ChatNavigator from "./chats/chats.jsx";
 import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { LinearGradient } from "expo-linear-gradient";
+import GradientText from "@/components/customs/gradientText.jsx";
 
 export default function DrawerTabNav() {
     const Drawer = createDrawerNavigator();
     const navigation = useNavigation();
     const { user } = useAuth();
-    const [activeItem, setActiveItem] = useState("ScreenNav"); // Initialize with the initial route name
 
     return (
         <Drawer.Navigator
@@ -42,12 +45,11 @@ export default function DrawerTabNav() {
                 drawerActiveTintColor: MyColors(1).green,
                 drawerInactiveTintColor: MyColors(0.8).white,
                 drawerStyle: {
-                    width: WP(70),
+                    width: WP(60),
                     borderRightWidth: 1,
-                    borderColor: MyColors(1).green,
+                    borderColor: MyColors(1).gray,
                     padding: WP(3),
                     backgroundColor: MyColors(1).black,
-                    gap: HP(1),
                 },
                 drawerLabelStyle: {
                     fontSize: HP(1.7),
@@ -55,16 +57,14 @@ export default function DrawerTabNav() {
                 },
             }}
             drawerContent={(props) => (
-                <SafeAreaView
-                    style={{ backgroundColor: MyColors(1).black, flex: 1 }}
-                >
+                <SafeAreaView style={{ backgroundColor: MyColors(1).black }}>
                     <StatusBar
                         barStyle={"light-content"}
                         backgroundColor={"transparent"}
                     />
                     <View
                         style={{
-                            marginTop: HP(15),
+                            marginTop: HP(20),
                             marginHorizontal: WP(1),
                             marginBottom: HP(4),
                             gap: HP(2),
@@ -100,7 +100,9 @@ export default function DrawerTabNav() {
                                                 aspectRatio: 1,
                                                 borderRadius: WP(100),
                                             }}
-                                            source={{ uri: user?.ProfilePic }}
+                                            source={{
+                                                uri: user?.ProfilePic,
+                                            }}
                                             placeholder={defaultIcon}
                                             contentFit="cover"
                                             transition={500}
@@ -120,7 +122,7 @@ export default function DrawerTabNav() {
                                     style={{
                                         color: MyColors(1).white,
                                         fontWeight: "900",
-                                        fontSize: HP(2.8),
+                                        fontSize: WP(4.5),
                                     }}
                                 >
                                     {user?.nickName}
@@ -136,21 +138,84 @@ export default function DrawerTabNav() {
                             </View>
                         </View>
                     </View>
-                    <DrawerItemList {...props} />
+                    <View
+                        style={{
+                            gap: HP(1),
+                            borderColor: MyColors(1).gray,
+                            borderWidth: 1,
+                            padding: HP(1),
+                            borderTopRightRadius: WP(6),
+                            borderBottomRightRadius: WP(6),
+                        }}
+                    >
+                        {props.state.routeNames.map((routeName, index) => {
+                            const { options } =
+                                props.descriptors[
+                                    props.state.routes[index].key
+                                ];
+                            const isFocused = props.state.index === index;
+
+                            return (
+                                <View key={routeName}>
+                                    <DrawerItem
+                                        label={options.drawerLabel}
+                                        onPress={() =>
+                                            props.navigation.navigate(routeName)
+                                        }
+                                        icon={options.drawerIcon}
+                                        style={
+                                            isFocused &&
+                                            {
+                                                // borderTopRightRadius:
+                                                //     index === 0 ? WP(4) : WP(0),
+                                                // borderBottomRightRadius:
+                                                //     index === 0
+                                                //         ? WP(0)
+                                                //         : index === 1
+                                                //         ? WP(0)
+                                                //         : WP(4),
+                                                // borderTopLeftRadius:
+                                                //     index === 0
+                                                //         ? WP(0)
+                                                //         : index === 1
+                                                //         ? WP(0)
+                                                //         : WP(0),
+                                                // borderBottomLeftRadius: WP(0),
+                                            }
+                                        }
+                                        focused={isFocused}
+                                        activeTintColor={MyColors(1).green}
+                                        inactiveTintColor={MyColors(0.8).white}
+                                        activeBackgroundColor={
+                                            MyColors(0.5).gray
+                                        }
+                                        labelStyle={{
+                                            fontSize: HP(1.7),
+                                            fontWeight: "bold",
+                                        }}
+                                    />
+                                </View>
+                            );
+                        })}
+                    </View>
                 </SafeAreaView>
             )}
             initialRouteName="ScreenNav"
         >
             <Drawer.Screen
                 name="ScreenNav"
-                initialParams={{ activeItem }}
                 options={{
                     drawerLabel: "Home",
                     drawerIcon: () => (
-                        <Ionicons
-                            name="home-outline"
-                            size={24}
-                            color={MyColors(1).green}
+                        <GradientText
+                            text={
+                                <Ionicons
+                                    name="home-outline"
+                                    size={24}
+                                    color={MyColors(1).green}
+                                />
+                            }
+                            colors={[MyColors(1).green, MyColors(1).purple]}
                         />
                     ),
                 }}
@@ -162,10 +227,15 @@ export default function DrawerTabNav() {
                 options={{
                     drawerLabel: "Ask AI",
                     drawerIcon: () => (
-                        <Ionicons
-                            name="chatbubble-ellipses-outline"
-                            size={24}
-                            color={MyColors(1).green}
+                        <GradientText
+                            text={
+                                <Ionicons
+                                    name="chatbubble-ellipses-outline"
+                                    size={24}
+                                    color={MyColors(1).green}
+                                />
+                            }
+                            colors={[MyColors(1).green, MyColors(1).purple]}
                         />
                     ),
                 }}
@@ -174,14 +244,18 @@ export default function DrawerTabNav() {
 
             <Drawer.Screen
                 name="SettingsNavigation"
-                initialParams={{ activeItem }}
                 options={{
                     drawerLabel: "Settings",
                     drawerIcon: () => (
-                        <Ionicons
-                            name="settings-outline"
-                            size={24}
-                            color={MyColors(1).green}
+                        <GradientText
+                            text={
+                                <Ionicons
+                                    name="settings-outline"
+                                    size={24}
+                                    color={MyColors(1).green}
+                                />
+                            }
+                            colors={[MyColors(1).green, MyColors(1).purple]}
                         />
                     ),
                 }}

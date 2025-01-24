@@ -14,9 +14,10 @@ import { MyColors } from "@/constants/myColors.jsx";
 import { Feather } from "@expo/vector-icons";
 import { useState, useEffect } from "react";
 import { Entypo } from "@expo/vector-icons";
-import styles from "./../styles";
-const RStyles = styles.RStyles;
-const levelStyles = styles.levelStyles;
+import Xstyles from "./../styles";
+const RStyles = Xstyles.RStyles;
+const levelStyles = Xstyles.levelStyles;
+const styles = Xstyles.Xtyles;
 
 export default function exerciseDescriptions({
     moveHorizontal,
@@ -144,7 +145,7 @@ export default function exerciseDescriptions({
         <Animated.ScrollView
             style={{
                 width: WP(100),
-                height: HP(68),
+                height: HP(80),
                 transform: [{ translateX: moveHorizontal }],
                 position: "absolute",
                 top: HP(9),

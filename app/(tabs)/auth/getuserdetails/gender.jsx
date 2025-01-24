@@ -4,7 +4,7 @@ import { heightPercentageToDP as HP, widthPercentageToDP as WP, } from "react-na
 import { MyColors } from "@/constants/myColors";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
 import styles from './styles'
-import stylesX from '../../../auth/authStyles'
+import stylesX from '../../auth/authStyles'
 const LoginRegisterStyle = stylesX.LoginRegisterStyle
 import NextButtons from './next'
 

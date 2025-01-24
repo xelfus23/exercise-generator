@@ -5,6 +5,7 @@ import {
     TouchableOpacity,
     ScrollView,
     Touchable,
+    Image,
 } from "react-native";
 import {
     heightPercentageToDP as HP,
@@ -318,9 +319,18 @@ export default function Exercise({ selectedItem, closeModal }) {
                                 size={24}
                                 color={MyColors(1).white}
                             />
-                            <Text style={styles.instructions}>
-                                {totalCalories.toFixed(2)} cal
-                            </Text>
+                            <View style={{ flexDirection: "row", alignItems: 'center' }}>
+                                <Text style={styles.instructions}>
+                                    {totalCalories.toFixed(2)} cal{" "}
+                                </Text>
+                                <Image
+                                    source={require("@/assets/images/ui/flame.png")}
+                                    style={{
+                                        width: WP(4),
+                                        aspectRatio: 1,
+                                    }}
+                                />
+                            </View>
                         </View>
                     </View>
 
@@ -433,13 +443,12 @@ const styles = StyleSheet.create({
     mainContainer: {},
     container: {
         padding: WP(4),
-        gap: HP(2),
         backgroundColor: MyColors(1).black,
         borderWidth: 1,
         borderColor: MyColors(1).gray,
         borderRadius: WP(4),
         position: "absolute",
-        height: HP(78),
+        height: HP(70),
         width: WP(100),
         bottom: 0,
     },

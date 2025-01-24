@@ -40,7 +40,6 @@ export const addComplete = async (
     value,
     sets,
     index,
-    updateUserData,
     exercisePlans,
     dayCount
 ) => {
@@ -86,16 +85,16 @@ export const addComplete = async (
                 });
             });
 
-            // Update the exercisePlans document
             const exercisePlansDocRef = doc(
                 exercisePlansRef,
                 docSnap.docs[0].id
-            ); // Get the DocumentReference for the first document
+            );
 
             await updateDoc(exercisePlansDocRef, {
-                exercisePlans: exercisePlans, // Update the 'exercisePlans' field within the document
+                exercisePlans: exercisePlans,
             });
-            console.log("Successfully updated exercise");
+
+            return { success: true };
         } else {
             console.error("Exercise plans document not found.");
         }

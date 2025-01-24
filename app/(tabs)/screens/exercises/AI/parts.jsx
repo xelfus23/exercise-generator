@@ -1,17 +1,26 @@
-const tunedParts = async (prompt, storageParts) => {
-    const randomTextFront = ["please", ""];
-    const randomTextBack = ["thank you", "thanks", ""];
-
-    // Helper function to pick a random element from an array
-    const getRandomElement = (array) =>
-        array[Math.floor(Math.random() * array.length)];
+const PlanParts = async ({ prompt }) => {
+    const randomInput = [
+        "Based on the provided user data, including height, weight, BMI, BMR, fitness level, goals, and health conditions, design a seven-day exercise plan.",
+        "Using the user vitals and preferences provided in the instructions, generate a detailed weekly workout schedule tailored to their fitness level and objectives.",
+        "Create a personalized seven-day fitness plan for the user, taking into account their height, weight, BMI, BMR, fitness goals, and any health limitations.",
+        "Given the user's data in the instructions, generate an exercise plan for seven days that aligns with their fitness level and specific health needs.",
+        "Using the vitals and preferences listed in the user data, provide a custom seven-day workout schedule focused on achieving their fitness goals.",
+        "Based on the instructions and the user's specific vitals (height, weight, BMI, BMR, etc.), create a seven-day workout plan tailored to their goals.",
+        "Design a weekly fitness program for the user, considering the provided data about their fitness level, preferences, and overall health conditions.",
+        "Using the user's fitness data and goals as outlined in the instructions, generate a detailed exercise plan for the next seven days.",
+        "Given the user data and fitness objectives described, create a personalized workout schedule that spans seven days and accommodates their health conditions.",
+        "Craft a seven-day workout routine based on the user's metrics (height, weight, BMI, BMR) and fitness goals as provided in the instructions.",
+        "Generate a weekly exercise plan that aligns with the user's data, focusing on their preferences, fitness level, and specific health needs.",
+        "Using the user details (height, weight, BMI, BMR, etc.) provided in the instructions, design a seven-day workout routine tailored to their needs.",
+        "Create a seven-day fitness program for the user, focusing on their fitness level, goals, and any health considerations outlined in the data.",
+        "Generate a custom seven-day workout plan based on the user metrics and vitals provided in the instructions, targeting their fitness objectives.",
+        "Using the given user data, including height, weight, BMI, BMR, and goals, create a detailed weekly exercise plan tailored to their preferences and needs.",
+    ];
 
     return prompt
         ? [
               {
-                  text: `input: ${getRandomElement(
-                      randomTextFront
-                  )} ${prompt} ${getRandomElement(randomTextBack)}. Ensure it's completed 7 days`,
+                  text: `input: ${prompt}`,
               },
               {
                   text: "output: ",
@@ -19,7 +28,11 @@ const tunedParts = async (prompt, storageParts) => {
           ]
         : [
               {
-                  text: `input: Make a weekly exercise plan that is suitable for me. Consider my vitals, such as my height, weight, BMI, BMR, and my preference, main goals, fitness levels, and health conditions. Please think carefully.`,
+                  text: `input: ${
+                      randomInput[
+                          Math.floor(Math.random() * randomInput.length)
+                      ]
+                  }`,
               },
               {
                   text: "output: ",
@@ -27,60 +40,4 @@ const tunedParts = async (prompt, storageParts) => {
           ];
 };
 
-export default tunedParts;
-// { text: "input: a" },
-// {
-//     text: "output: error I don't understand what you're saying please try again.",
-// },
-// { text: "input: aoskfosakf" },
-// {
-//     text: `output:  {"error": "I'm sorry, your request is unclear. Can you please provide a more specific request? For example, you can tell me how many weeks of the exercise plan you would like."}`,
-// },
-// { text: "input: yes" },
-// {
-//     text: `output:  {"error": "I'm sorry, your request is unclear. Can you please provide a more specific request? For example, you can tell me how many weeks of the exercise plan you would like, how much exercise each day, where do you prefer to exercise?."}`,
-// },
-// { text: "input: no" },
-// {
-//     text: `output:  {"error": "I'm sorry, your request is unclear. Can you please provide a more specific request?"}`,
-// },
-// { text: "input: what?" },
-// {
-//     text: `output:  {"error": "I'm sorry, your request is unclear. Please provide a specific details."}`,
-// },
-// { text: "input: exercise" },
-// {
-//     text: `output:  {"error": "I'm sorry, your request is unclear. Can you please provide a more specific request? For example, you can tell me what kind of exercise you like, what are your goals."}`,
-// },
-// { text: "input: plan" },
-// {
-//     text: `output:  {"error": "I'm sorry, your request is unclear. Can you please provide a more specific request? For example, you can tell me what kind of exercise you like, what are your goals, what you want to achieve?."}`,
-// },
-// { text: "input: exercise plan" },
-// {
-//     text: `output:  {"error": "I'm sorry, your request is unclear. Can you please provide a more specific request? For example, you can tell me what kind of exercise you like, what are your goals."}`,
-// },
-// { text: "input: jpwgwpajongwwga" },
-// {
-//     text: `output:  {"error": "I'm sorry, your request is not understandable. Please provide a valid request."}`,
-// },
-// { text: "Hi" },
-// {
-//     text: `output:  {"error": "Hi, I can make exercise plan for you, But you have to provide a more specific request? For example, you can tell me what kind of exercise you'd like?, how many weeks?, on what place you prefer to do it?"}`,
-// },
-// { text: "Hello" },
-// {
-//     text: `output:  {"error": "Hi, I can make exercise plan for you, But you have to provide a more specific request? For example, you can tell me what kind of exercise you'd like?, how many weeks?, on what place you prefer to do it?"}`,
-// },
-// { text: "sorry" },
-// {
-//     text: `output:  {"error": "No problem!, please tell me what kind of exercise you'd like to generate."}`,
-// },
-// { text: "sorry" },
-// {
-//     text: `output:  {"error": "Whats the matter?, please tell me what kind of exercise you'd like to generate."}`,
-// },
-// { text: "okay" },
-// {
-//     text: `output:  {"error": "Please provide a valid and specific request."}`,
-// },
+export default PlanParts;

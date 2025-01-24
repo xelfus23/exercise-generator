@@ -10,6 +10,9 @@ import {
     EmailAuthProvider,
     updatePassword,
     getAuth,
+    setPersistence,
+    browserLocalPersistence,
+    inMemoryPersistence,
 } from "firebase/auth";
 import {
     collection,
@@ -21,11 +24,36 @@ import {
 } from "firebase/firestore";
 import { getStorage } from "firebase/storage";
 import React, { createContext, useContext, useEffect, useState } from "react";
+import { router, useNavigation } from "expo-router";
+import AsyncStorage from "@react-native-async-storage/async-storage";
 
 const AuthContext = createContext();
 
 export const AuthContextProvider = ({ children }) => {
-    const [user, setUser] = useState(null);
+    const [user, setUser] = useState({
+        firstName: "",
+        lastName: "",
+        email: "",
+        emailVerified: false,
+        nickName: "",
+        gender: "unspecified",
+        mainGoal: "unspecified",
+        birthDate: { day: 1, month: 1, year: 2000 },
+        bodyMetrics: {
+            heightAndWeight: {
+                height: 0,
+                weight: 0,
+                heightUnit: "cm",
+                weightUnit: "kg",
+            },
+            circumferences: { neck: 0, hip: 0, waist: 0, unit: "cm" },
+        },
+        fitnessLevel: "beginner",
+        activityLevel: "low",
+        selectedPlace: "unspecified",
+        exercisePlans: [],
+        otherExercise: [],
+    });
     const [isAuthenticated, setIsAuthenticated] = useState(false);
     const otherExercise = user?.otherExercise || [];
     const exercisePlans = user?.exercisePlans || [];
@@ -39,10 +67,17 @@ export const AuthContextProvider = ({ children }) => {
     const [todayExercise, setTodayExercise] = useState([]);
     const [showModal, setShowModal] = useState(false);
     const [isLoading, setIsLoading] = useState(true);
+    const [initialDataFetched, setInitialDataFetched] = useState(false);
+    const [initialUser, setInitialUser] = useState(false);
+
+    const navigation = useNavigation();
 
     const calculateEverything = () => {
-        console.log(exercisePlans);
-        if (exercisePlans?.length === 0) return;
+        console.log("calculateEverything: exercisePlans", exercisePlans);
+        if (!user || !exercisePlans?.length) {
+            console.log("No exercise plans to calculate.");
+            return;
+        }
 
         let exercisePlanToday = [],
             everyExercise = [],
@@ -73,7 +108,6 @@ export const AuthContextProvider = ({ children }) => {
         const todayDate = new Date().getDate();
 
         const newToday = new Date(todayYear, todayMonth, todayDate);
-        console.log(newTodayFormatted);
 
         exercisePlans?.forEach((plan) => {
             plan?.weeks?.map((week, i1) => {
@@ -222,57 +256,74 @@ export const AuthContextProvider = ({ children }) => {
         calculateEverything();
     }, [user]);
 
+    // Corrected onAuthStateChanged
     useEffect(() => {
-        const unsubscribe = onAuthStateChanged(auth, (userAuth) => {
+        const unsubscribe = onAuthStateChanged(auth, async (userAuth) => {
+            setIsAuthenticated(!!userAuth);
+            console.log("onAuthStateChanged - userAuth:", userAuth);
             if (userAuth) {
-                setIsAuthenticated(true);
-                console.log("User is Authenticated");
+                console.log(
+                    "onAuthStateChanged - user authenticated, updating data"
+                );
+                await updateUserData(userAuth.uid);
             } else {
-                setIsAuthenticated(false);
-                setUser(null);
-                console.log("User is not authenticated");
+                console.log(
+                    "onAuthStateChanged - user not authenticated, resetting navigation to start"
+                );
+                navigation.reset({ index: 0, routes: [{ name: "start" }] });
+                setInitialDataFetched(false);
             }
         });
         return unsubscribe;
-    }, [user]);
-
-    useEffect(() => {
-        updateUserData(currentUser?.uid);
     }, [isAuthenticated]);
 
-    const checkNestedObject = (obj) => {
-        if (obj === null || typeof obj !== "object") {
-            return obj !== null && obj !== undefined && obj !== "";
-        }
-        return (
-            obj &&
-            Object.values(obj)?.every((value) => {
-                if (typeof value === "object" && value !== null) {
-                    return checkNestedObject(value); // Recursively check nested objects
-                }
-                return value !== null && value !== undefined && value !== "";
-            })
+    useEffect(() => {
+        console.log(
+            "useEffect - user, isLoading, initialDataFetched change",
+            user,
+            isLoading,
+            initialDataFetched
         );
-    };
+        if (user && !isLoading && initialDataFetched) {
+            console.log("useEffect - checkInitializationStatus");
+            checkInitializationStatus(user);
+        }
+    }, [isAuthenticated, isLoading, initialDataFetched, initialUser]);
 
     const checkInitializationStatus = async (obj) => {
-        const notEmpty = await checkNestedObject(obj);
-
-        if (!notEmpty) {
-            setShowModal(true);
+        console.log("checkInitializationStatus - obj:", obj);
+        if (obj?.nickName) {
+            console.log(
+                "checkInitializationStatus - nickname present, navigating to homeStack"
+            );
+            navigation.reset({
+                index: 0,
+                routes: [{ name: "homeStack" }],
+            });
+            return true;
         } else {
-            setShowModal(false);
+            console.log(
+                "checkInitializationStatus - nickname not present, navigating to getDetails"
+            );
+            navigation.reset({
+                index: 0,
+                routes: [{ name: "getDetails" }],
+            });
+            return false;
         }
     };
 
-    useEffect(() => {
-        checkInitializationStatus(user);
-    }, [user]);
-
     const updateUserData = async (userID) => {
-        try {
-            if (!currentUser) throw new Error("User not authenticated.");
+        if (!userID) {
+            console.log("updateUserData: No user ID provided.");
+            return;
+        }
 
+        try {
+            if (!currentUser) {
+                console.log("updateUserData: User not authenticated.");
+                throw new Error("User not authenticated.");
+            }
             const docRef = doc(db, "users", userID);
             const docSnapShot = await getDoc(docRef);
             const exercisePlanRef = collection(docRef, "exercisePlans");
@@ -282,7 +333,6 @@ export const AuthContextProvider = ({ children }) => {
                 const data = docSnapShot.data();
                 let exercisePlans = [];
                 let otherExercisePlan = [];
-
                 exerciseSnapShot?.forEach((docs) => {
                     const exerciseData = docs.data();
                     if (exerciseData) {
@@ -290,64 +340,97 @@ export const AuthContextProvider = ({ children }) => {
                             exerciseData?.otherExercise?.map((plan) => {
                                 otherExercisePlan.push(plan);
                             });
-                        } else {
-                            console.log("No other exercise data found.");
                         }
                         if (exerciseData?.exercisePlans?.length > 0) {
                             exerciseData?.exercisePlans?.map((plan) => {
                                 exercisePlans.push(plan);
                             });
-                        } else {
-                            console.log("No exercise data found.");
                         }
                     }
                 });
 
-                setUser({
-                    firstName: data.firstName,
-                    lastName: data.lastName,
-                    email: currentUser.email,
-                    emailVerified: currentUser.emailVerified,
-                    nickName: data.nickName,
-                    gender: data.gender,
-                    mainGoal: data.mainGoal,
+                console.log("updateUserData: User data fetched:", userData);
+
+                // Create the updated user object without doing a full spread.
+                const userData = {
+                    firstName: data.firstName || "",
+                    lastName: data.lastName || "",
+                    email: currentUser.email || "",
+                    emailVerified: currentUser.emailVerified || false,
+                    nickName: data.nickName || "",
+                    gender: data.gender || "unspecified",
+                    mainGoal: data.mainGoal || "unspecified",
                     birthDate: {
-                        day: data.birthDate?.day,
-                        month: data.birthDate?.month,
-                        year: data.birthDate?.year,
+                        day: data.birthDate?.day || 1,
+                        month: data.birthDate?.month || 1,
+                        year: data.birthDate?.year || 2000,
                     },
                     bodyMetrics: {
                         heightAndWeight: {
-                            height: data.heightAndWeight?.height,
-                            weight: data.heightAndWeight?.weight,
-                            heightUnit: data.heightAndWeight?.heightUnit,
-                            weightUnit: data.heightAndWeight?.weightUnit,
+                            height: data.heightAndWeight?.height || 0,
+                            weight: data.heightAndWeight?.weight || 0,
+                            heightUnit:
+                                data.heightAndWeight?.heightUnit || "cm",
+                            weightUnit:
+                                data.heightAndWeight?.weightUnit || "kg",
                         },
                         circumferences: {
-                            neck: data.bodyMeasurements?.neck,
-                            hip: data.bodyMeasurements?.hip,
-                            waist: data.bodyMeasurements?.waist,
-                            unit: data.bodyMeasurements?.unit,
+                            neck: data.bodyMeasurements?.neck || 0,
+                            hip: data.bodyMeasurements?.hip || 0,
+                            waist: data.bodyMeasurements?.waist || 0,
+                            unit: data.bodyMeasurements?.unit || "cm",
                         },
                     },
-                    fitnessLevel: data.fitnessLevel,
-                    activityLevel: data.activityLevel,
-                    selectedPlace: data.selectedPlace,
-                    exercisePlans: exercisePlans,
+                    fitnessLevel: data.fitnessLevel || "beginner",
+                    activityLevel: data.activityLevel || "low",
+                    selectedPlace: data.selectedPlace || "unspecified",
+                    exercisePlans,
                     otherExercise: otherExercisePlan,
+                };
+
+                setUser((prev) => {
+                    console.log(
+                        "updateUserData: setUser is called",
+                        prev,
+                        "new:",
+                        userData
+                    );
+
+                    let changes = false;
+                    for (const key in userData) {
+                        if (
+                            JSON.stringify(prev[key]) !==
+                            JSON.stringify(userData[key])
+                        ) {
+                            changes = true;
+                        }
+                    }
+                    if (changes) return userData;
+                    return prev;
                 });
                 setIsLoading(false);
+                setInitialDataFetched(true);
+                if (!initialUser) {
+                    setInitialUser(true);
+                }
             } else {
-                console.log("User document not found.");
+                console.error(
+                    "updateUserData: User document not found in Firestore."
+                );
+                return;
             }
         } catch (e) {
-            console.log("Error fetching user data: ", e);
+            console.log("updateUserData: Error fetching user data:", e);
+            setIsLoading(false);
         }
     };
+
+    console.log("Exercise plan data:", exercisePlans);
 
     const login = async (email, password) => {
         try {
             await signInWithEmailAndPassword(auth, email, password);
+            setIsAuthenticated(true);
             return { success: true };
         } catch (e) {
             let msg = e.message;
@@ -362,6 +445,38 @@ export const AuthContextProvider = ({ children }) => {
         try {
             await signOut(auth);
             setIsLoading(true);
+            // calculateEverything();
+            setTodayExercise([]);
+            setAllCompletedExercise([]);
+            setProgress(0);
+            setUser({
+                firstName: "",
+                lastName: "",
+                email: "",
+                emailVerified: false,
+                nickName: "",
+                gender: "unspecified",
+                mainGoal: "unspecified",
+                birthDate: { day: 1, month: 1, year: 2000 },
+                bodyMetrics: {
+                    heightAndWeight: {
+                        height: 0,
+                        weight: 0,
+                        heightUnit: "cm",
+                        weightUnit: "kg",
+                    },
+                    circumferences: { neck: 0, hip: 0, waist: 0, unit: "cm" },
+                },
+                fitnessLevel: "beginner",
+                activityLevel: "low",
+                selectedPlace: "unspecified",
+                exercisePlans: [],
+                otherExercise: [],
+            });
+            navigation.reset({
+                index: 0,
+                routes: [{ name: "login" }],
+            });
             return { success: true };
         } catch (e) {
             return { success: false, msg: e.message, error: e };
@@ -369,6 +484,7 @@ export const AuthContextProvider = ({ children }) => {
     };
 
     const register = async (fName, lName, pw, email) => {
+        console.log("register: Attempting registration with email:", email);
         try {
             const response = await createUserWithEmailAndPassword(
                 auth,
@@ -380,12 +496,20 @@ export const AuthContextProvider = ({ children }) => {
                 lastName: lName,
                 userID: response?.user?.uid,
             });
-            setUser(response.user);
-            setIsAuthenticated(true);
-            await updateUserData(response.user.uid);
+            console.log(
+                "register: Registration successful, data:",
+                response?.user
+            );
+            await updateUserData(response?.user?.uid);
             return { success: true, data: response?.user };
         } catch (e) {
             let msg = e.message;
+            console.log(
+                "register: Registration failed. Error:",
+                e,
+                "Message:",
+                msg
+            );
             if (msg.includes("(auth/invalid-email)")) msg = "Invalid email";
             if (msg.includes("(auth/email-already-in-use)"))
                 msg = "This email is already in use";
@@ -418,6 +542,7 @@ export const AuthContextProvider = ({ children }) => {
             value={{
                 user,
                 isAuthenticated,
+                setIsAuthenticated,
                 updateUserData,
                 login,
                 register,
@@ -434,6 +559,10 @@ export const AuthContextProvider = ({ children }) => {
                 isLoading,
                 showModal,
                 setShowModal,
+                calculateEverything,
+                checkInitializationStatus,
+                initialUser,
+                setInitialUser,
             }}
         >
             {children}

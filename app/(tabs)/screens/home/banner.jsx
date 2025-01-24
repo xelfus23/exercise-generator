@@ -44,7 +44,11 @@ const Banner = ({ user }) => {
                 style={{ flexDirection: "row", gap: 10, alignItems: "center" }}
             >
                 <Text style={styles.label}>Hi</Text>
-                <GradientText style={[styles.name]} text={user?.firstName} />
+                <GradientText
+                    style={[styles.name]}
+                    text={user?.firstName}
+                    colors={[MyColors(1).green, MyColors(1).black]}
+                />
             </View>
             <Text style={styles.date}>{formattedDate}</Text>
             {/* <Text style={styles.date}>{currentTime}</Text> */}

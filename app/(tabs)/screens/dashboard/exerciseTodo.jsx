@@ -14,7 +14,7 @@ import { MyColors } from "@/constants/myColors";
 import { AntDesign } from "@expo/vector-icons";
 import { useNavigation } from "expo-router";
 
-export default function ToDo({ todayExercise }) {
+export default function ToDo({ todayExercise, exercisePlans }) {
     const navigation = useNavigation();
     const drawerRef = useRef(new Animated.Value(-WP(60)))?.current;
     const isDrawerOpen = useRef(false);
@@ -28,11 +28,30 @@ export default function ToDo({ todayExercise }) {
         });
     };
 
+    console.log("TODAY'S EXERCISE: ", todayExercise)
+
     useEffect(() => {
         if (drawerRef === 0) {
             toggle();
         }
     }, []);
+
+    // Function to sort exercises with incomplete at the top
+    const sortExercises = (exercises) => {
+        if (!exercises || exercises.length === 0) return [];
+        return [...exercises].sort((a, b) => {
+          if (a.exercise?.name === "Rest Day" && b.exercise?.name !== "Rest Day") {
+            return 1;
+          }
+          if (a.exercise?.name !== "Rest Day" && b.exercise?.name === "Rest Day") {
+            return -1
+          }
+          return (a.exercise?.completed === b.exercise?.completed) ? 0 : (a.exercise?.completed ? 1 : -1);
+        });
+      };
+    
+    const sortedExercises = sortExercises(todayExercise);
+
     return (
         <Animated.View
             style={{
@@ -87,8 +106,8 @@ export default function ToDo({ todayExercise }) {
                         padding: WP(4),
                     }}
                 >
-                    {todayExercise?.length > 0 ? (
-                        todayExercise?.map(
+                    {sortedExercises?.length !== 0 ? (
+                        sortedExercises?.map(
                             (item) =>
                                 item?.exercise?.name !== "Rest Day" && (
                                     <View

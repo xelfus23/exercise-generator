@@ -1,75 +1,94 @@
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useLayoutEffect, useState } from "react";
 import {
     Text,
     SafeAreaView,
     View,
     StyleSheet,
     TouchableOpacity,
+    Platform,
+    PermissionsAndroid,
 } from "react-native";
+import { useNavigation } from "expo-router";
+import stylesX from "@/app/(tabs)/auth/authStyles";
+import { MyColors } from "@/constants/myColors";
+import {
+    widthPercentageToDP as WP,
+    heightPercentageToDP as HP,
+} from "react-native-responsive-screen";
+import Header from "./header";
 import { CountdownCircleTimer } from "react-native-countdown-circle-timer";
 import Feather from "@expo/vector-icons/Feather";
-import Header from "./header";
-import { MyColors } from "@/constants/myColors";
-import { useNavigation } from "expo-router";
-import {
-    heightPercentageToDP as HP,
-    widthPercentageToDP as WP,
-} from "react-native-responsive-screen";
 import { useAuth } from "@/components/auth/authProvider";
-import { addComplete } from "./exercisehandler";
+import exerciseHandler from "./exercisehandler";
+import * as Notification from "expo-notifications";
+import * as TaskManager from "expo-task-manager";
+import * as BackgroundFetch from "expo-background-fetch";
 import { getAuth } from "firebase/auth";
 
-const formatTime = (time) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = time % 60;
-    return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
-        2,
-        "0"
-    )}`;
-};
-
 export default function ExerciseContent({ route, setTabBarVisible }) {
-    const { exercise, value, index, sets } = route.params; // Exercise type, duration/value, and sets
-    const [currentSet, setCurrentSet] = useState(1); // Current set tracker
-    const [stage, setStage] = useState("getReady"); // Phases: "getReady", "exercise", "rest", "complete"
-    const [timerKey, setTimerKey] = useState(0); // To reset timers
+    const { exercise, value, index, sets } = route.params;
     const currentUser = getAuth().currentUser;
-
-    const { user, updateUserData, exercisePlans, dayCount } = useAuth();
-
+    const {
+        user,
+        updateUserData,
+        exercisePlans,
+        dayCount,
+        calculateEverything,
+    } = useAuth(); // Add `calculateEverything` here
+    const [cooledDown, setCooledDown] = useState(false);
     const navigation = useNavigation();
-
-    useEffect(() => {
-        setCurrentSet(1);
-        setStage("getReady");
-        setTimerKey(0);
-    }, []);
+    const style = stylesX.style;
+    const AddComplete = exerciseHandler.addComplete;
+    const restTime = 10;
+    const getReady = 10;
 
     useEffect(() => {
         setTabBarVisible(false);
-        return () => setTabBarVisible(true);
     }, [setTabBarVisible]);
 
-    const handleNextStage = () => {
-        if (stage === "getReady") {
-            setStage("exercise");
-        } else if (stage === "exercise") {
-            if (currentSet < sets) {
-                setStage("rest");
-            } else {
-                setStage("complete");
-            }
-        } else if (stage === "rest") {
-            setCurrentSet((prev) => prev + 1);
-            setStage("exercise");
+    useLayoutEffect(() => {
+        if (exercise?.exercise?.name) {
+            navigation.setOptions({ headerTitle: exercise?.exercise.name });
         }
-        setTimerKey((prev) => prev + 1);
+    }, [navigation, exercise?.exercise?.name]);
+
+    const [countdown, setCountdown] = useState(30 * 60); // 30 minutes in seconds
+
+    const formatTime = (time) => {
+        const minutes = Math.floor(time / 60);
+        const seconds = time % 60;
+        return `${String(minutes).padStart(2, "0")}:${String(seconds).padStart(
+            2,
+            "0"
+        )}`;
     };
 
-    const completeExercise = async (item) => {
-        console.log("Exercise completed");
+    const [phase, setPhase] = useState("Get Ready");
+    const [currentSet, setCurrentSet] = useState(1);
+
+    const handlePhaseChange = () => {
+        if (phase === "Get Ready") {
+            setPhase("Exercise");
+            console.log("Phase: ", phase);
+        } else if (phase === "Exercise") {
+            if (currentSet < sets) {
+                setPhase("Rest");
+                console.log("Phase: ", phase);
+            } else {
+                setPhase("Done");
+                console.log("Phase: ", phase);
+            }
+        } else if (phase === "Rest") {
+            setPhase("Exercise");
+            console.log("Phase: ", phase);
+            setCurrentSet((prev) => prev + 1);
+        }
+    };
+
+    const complete = async (item) => {
         if (user) {
-            await addComplete(
+            console.log("Completing Exercise");
+            const result = await AddComplete(
                 user,
                 item,
                 value,
@@ -78,229 +97,183 @@ export default function ExerciseContent({ route, setTabBarVisible }) {
                 exercisePlans,
                 dayCount
             );
+
+            if (result.success) {
+                console.log("Successfully updated exercise");
+                await updateUserData(currentUser.uid);
+                calculateEverything(); // Call calculateEverything
+                navigation.goBack();
+                setTabBarVisible(true);
+            } else {
+                console.log("Error exercise completion.");
+            }
         }
-        await updateUserData(currentUser.uid);
-        navigation.navigate("ExercisesList", {
-            setTabBarVisible,
-        });
     };
 
+    const [timer, setTimer] = useState(0);
+
     return (
-        <SafeAreaView style={styles.mainContainer}>
-            <Header title={`${exercise.exercise.name}`} />
-            <View style={styles.content}>
-                {stage === "complete" ? (
-                    <View>
-                        <Text style={styles.completeText}>
-                            Exercise Completed!
-                        </Text>
-                        <View
-                            style={{
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}
-                        >
-                            <TouchableOpacity
-                                style={styles.completeButton}
-                                onPress={() => completeExercise(exercise)}
+        <SafeAreaView style={[style.main_container]}>
+            <Header title={exercise?.exercise?.name || "Exercise"} />
+            {phase !== "Done" ? (
+                <View style={styles.container}>
+                    <Text style={styles.label}>
+                        {phase === "Get Ready" && `Get Ready in`}{" "}
+                        {phase === "Get Ready" && (
+                            <Text
+                                style={{
+                                    color: MyColors(1).green,
+                                    fontWeight: "bold",
+                                }}
                             >
-                                <Text style={styles.buttonText}>Finish</Text>
+                                {timer}
+                            </Text>
+                        )}
+                        {phase === "Exercise" && `Perform Set ${currentSet}`}
+                        {phase === "Rest" && "Take a Rest!"}
+                    </Text>
+
+                    {phase === "Get Ready" ||
+                    phase === "Rest" ||
+                    exercise?.exercise?.type === "duration" ? (
+                        <View style={styles.timerContainer}>
+                            <CountdownCircleTimer
+                                key={`${phase}-${currentSet}`}
+                                isPlaying
+                                duration={
+                                    phase === "Get Ready"
+                                        ? getReady
+                                        : phase === "Exercise"
+                                        ? value
+                                        : restTime
+                                }
+                                onComplete={
+                                    phase === "Get Ready"
+                                        ? handlePhaseChange
+                                        : phase === "Exercise"
+                                        ? handlePhaseChange
+                                        : phase === "Rest"
+                                        ? handlePhaseChange
+                                        : phase === "Done"
+                                        ? handlePhaseChange
+                                        : handlePhaseChange
+                                }
+                                colors={["#00c896", "#d1a338", "#e64848"]}
+                                colorsTime={[10, 5, 0]}
+                                onUpdate={(time) => setTimer(time)}
+                            >
+                                {({ remainingTime }) =>
+                                    phase !== "Get Ready" ? (
+                                        <Text style={styles.remainingTime}>
+                                            {formatTime(remainingTime)}
+                                        </Text>
+                                    ) : (
+                                        phase !== "Exercise" && (
+                                            <TouchableOpacity
+                                                style={styles.skipButton}
+                                                onPress={handlePhaseChange}
+                                                accessibilityLabel="Skip to Next Phase"
+                                            >
+                                                <Feather
+                                                    name="skip-forward"
+                                                    size={HP(5)}
+                                                    color={MyColors(1).white}
+                                                />
+                                            </TouchableOpacity>
+                                        )
+                                    )
+                                }
+                            </CountdownCircleTimer>
+                        </View>
+                    ) : (
+                        <View style={styles.repsContainer}>
+                            <View style={styles.row}>
+                                <Text style={styles.label}>
+                                    {exercise?.exercise?.name || "Exercise"}
+                                </Text>
+                                <Text style={styles.reps}>{value}x</Text>
+                            </View>
+                            <TouchableOpacity
+                                style={styles.doneButton}
+                                onPress={handlePhaseChange}
+                            >
+                                <Text style={styles.doneText}>Done</Text>
                             </TouchableOpacity>
                         </View>
-                    </View>
-                ) : (
-                    <>
-                        {exercise.exercise.type === "duration" && (
-                            <>
-                                <View>
-                                    <Text
-                                        style={{
-                                            color: MyColors(1).white,
-                                            fontWeight: "bold",
-                                            fontSize: HP(2.5),
-                                        }}
-                                    >
-                                        Set number {currentSet} of {sets}
-                                    </Text>
-                                </View>
-                                <View
-                                    style={{
-                                        flex: 2 / 3,
-                                        justifyContent: "center",
-                                        alignItems: "center",
-                                    }}
-                                >
-                                    <CountdownCircleTimer
-                                        key={timerKey}
-                                        isPlaying
-                                        duration={
-                                            stage === "getReady"
-                                                ? 10
-                                                : stage === "exercise"
-                                                ? value
-                                                : 10
-                                        }
-                                        colors={[
-                                            "#00c896",
-                                            "#d1a338",
-                                            "#e64848",
-                                        ]}
-                                        size={HP(35)}
-                                        colorsTime={[10, 5, 0]}
-                                        onComplete={handleNextStage}
-                                    >
-                                        {({ remainingTime }) => (
-                                            <View
-                                                style={{
-                                                    justifyContent: "center",
-                                                    alignItems: "center",
-                                                }}
-                                            >
-                                                <Text style={styles.time}>
-                                                    {formatTime(remainingTime)}
-                                                </Text>
-                                            </View>
-                                        )}
-                                    </CountdownCircleTimer>
-                                </View>
-                            </>
-                        )}
-                        {exercise.exercise.type === "reps" && (
-                            <RepsScreen
-                                value={value}
-                                currentSet={currentSet}
-                                onComplete={handleNextStage}
-                                sets={sets}
-                                setCurrentSet={setCurrentSet}
-                            />
-                        )}
-                        {exercise.exercise.type === "distance" && (
-                            <DistanceScreen
-                                value={value}
-                                currentSet={currentSet}
-                                onComplete={handleNextStage}
-                            />
-                        )}
-                    </>
-                )}
-            </View>
+                    )}
+                </View>
+            ) : (
+                <View
+                    style={{
+                        justifyContent: "center",
+                        alignItems: "center",
+                        flex: 1,
+                    }}
+                >
+                    <TouchableOpacity
+                        style={styles.doneButton}
+                        onPress={() => complete(exercise)}
+                        accessibilityLabel="Mark Routine as Done"
+                    >
+                        <Text style={styles.doneText}>Complete!</Text>
+                    </TouchableOpacity>
+                </View>
+            )}
         </SafeAreaView>
     );
 }
 
-const RepsScreen = ({ value, currentSet, onComplete, sets, setCurrentSet }) => {
-    const [currentRep, setCurrentRep] = useState(1);
-
-    const handleNextRep = () => {
-        if (currentRep < value) {
-            if (currentSet <= sets) {
-                setCurrentRep((prev) => prev + 1);
-            } else {
-                onComplete();
-            }
-        } else {
-            if (currentSet == sets) {
-                onComplete();
-            } else {
-                setCurrentRep(0);
-                setCurrentSet((prev) => prev + 1);
-            }
-        }
-    };
-
-    return (
-        <View style={styles.content}>
-            <Text style={styles.time}>
-                Set {currentSet}: Rep {currentRep} of {value}
-            </Text>
-            <View style={{ justifyContent: "center", alignItems: "center" }}>
-                <TouchableOpacity
-                    onPress={handleNextRep}
-                    style={styles.nextButton}
-                >
-                    <Text style={styles.nextText}>Done</Text>
-                </TouchableOpacity>
-            </View>
-        </View>
-    );
-};
-
-const DistanceScreen = ({ value, currentSet, onComplete }) => {
-    const [distance, setDistance] = useState(0);
-
-    const handleUpdateDistance = () => {
-        if (distance < value) {
-            setDistance((prev) => prev + 1); // Simulating distance tracking
-        } else {
-            onComplete();
-        }
-    };
-
-    return (
-        <View style={styles.content}>
-            <Text style={styles.time}>
-                Set {currentSet}: {distance} / {value} meters
-            </Text>
-            <TouchableOpacity
-                onPress={handleUpdateDistance}
-                style={styles.nextButton}
-            >
-                <Feather name="arrow-right" size={24} color="white" />
-                <Text style={styles.nextText}>Add Distance</Text>
-            </TouchableOpacity>
-        </View>
-    );
-};
-
 const styles = StyleSheet.create({
-    mainContainer: {
+    container: {
         flex: 1,
-        backgroundColor: MyColors(1).black,
+        padding: 20,
+        alignItems: "center",
+        gap: HP(8),
+        paddingTop: HP(20),
     },
-    content: {
-        flex: 1,
-        padding: WP(4),
-    },
-    time: {
-        color: MyColors(1).white,
+    timer: {
+        fontSize: HP(3),
+        color: MyColors(1).green,
         fontWeight: "bold",
-        fontSize: HP(6),
-        textAlign: "center",
     },
-    nextButton: {
-        marginTop: 20,
+    label: {
+        fontSize: HP(3),
+        color: MyColors(1).white,
+    },
+    remainingTime: {
+        color: MyColors(1).green,
+        fontSize: HP(4),
+    },
+    centered: {
+        flex: 1,
+        justifyContent: "center",
+        alignItems: "center",
+    },
+    repsContainer: {
+        gap: HP(2),
+    },
+    row: {
         flexDirection: "row",
         alignItems: "center",
-        backgroundColor: MyColors(1).green,
-        padding: 10,
+        gap: WP(2),
+    },
+    reps: {
+        color: MyColors(1).green,
+        fontSize: HP(3),
+    },
+    doneButton: {
+        padding: WP(1),
+        backgroundColor: MyColors(1).gray,
         borderRadius: WP(4),
-        justifyContent: "center",
-        width: WP(40),
-    },
-    nextText: {
-        color: "white",
-        fontWeight: "bold",
-        fontSize: HP(1.7),
-    },
-    completeText: {
-        color: MyColors(1).white,
-        fontWeight: "bold",
-        fontSize: 24,
-        textAlign: "center",
-    },
-    completeButton: {
-        marginTop: 20,
-        flexDirection: "row",
+        borderColor: MyColors(1).green,
+        borderWidth: 1,
         alignItems: "center",
-        backgroundColor: MyColors(1).green,
-        padding: 10,
-        borderRadius: WP(4),
         justifyContent: "center",
-        width: WP(60),
+        width: WP(70),
     },
-    buttonText: {
-        color: "white",
+    doneText: {
+        color: MyColors(1).green,
+        fontSize: HP(3),
         fontWeight: "bold",
-        fontSize: 18,
     },
 });

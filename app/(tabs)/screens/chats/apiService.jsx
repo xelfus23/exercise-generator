@@ -30,13 +30,11 @@ import {
 } from "firebase/firestore";
 import { chatRoomRef, db } from "@/components/firebase/config";
 import { getAuth } from "firebase/auth";
-import { userData } from "@/components/auth/userData";
-import Svg, { Path } from "react-native-svg";
+import userData from "@/components/auth/userData";
 import AntDesign from "@expo/vector-icons/AntDesign";
 
-const ChatComponent = () => {
-    const { user, updateUserData } = useAuth();
-    const data = userData();
+const ChatComponent = ({ user, updateUserData }) => {
+    // const data = userData();
     const [chat, setChat] = useState([]);
     const [userInput, setUserInput] = useState("");
     const [loading, setLoading] = useState(false);
@@ -44,22 +42,20 @@ const ChatComponent = () => {
     const [hasMore, setHasMore] = useState(true);
     const [fetchingMore, setFetchingMore] = useState(false);
     const [lastFetchedDoc, setLastFetchedDoc] = useState(null);
-    const [chatHistory, setChatHistory] = useState([]);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState(null);
-    const instructions = getInstructions(data);
+    const instructions = getInstructions("data");
     const GEMINI_API_KEY = "AIzaSyCiD1R5_8nv5JxFdfhSmvePA5otCtMglOw";
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
-    const [isOnTop, setIsOnTop] = useState(false);
     const [isAtBottom, setIsAtBottom] = useState(true); // Track if FlatList is at the bottom
     const debounceScroll = useRef(null);
+    const chatHistoryRef = useRef([]);
+    const abortController = useRef(null);
 
     const handleScroll = (event) => {
         const offsetY = event.nativeEvent.contentOffset.y;
         const contentHeight = event.nativeEvent.contentSize.height;
         const viewHeight = event.nativeEvent.layoutMeasurement.height;
-
-        // Determine if FlatList is at the bottom
         const atBottom = offsetY + viewHeight >= contentHeight - 10; // Threshold of 10 pixels
 
         if (debounceScroll.current) clearTimeout(debounceScroll.current);
@@ -73,6 +69,21 @@ const ChatComponent = () => {
             loadInitialChat();
         }
     }, [user]);
+
+    useEffect(() => {
+        chatHistoryRef.current = chat;
+    }, [chat]);
+
+    useEffect(() => {
+        return () => {
+            if (abortController.current) {
+                abortController.current.abort();
+            }
+            if (debounceScroll.current) {
+                clearTimeout(debounceScroll.current);
+            }
+        };
+    }, []);
 
     const model = genAI.getGenerativeModel({
         model: "gemini-1.5-flash",
@@ -101,7 +112,7 @@ const ChatComponent = () => {
 
             if (!chatDocSnap.empty) {
                 const chatData = chatDocSnap.docs[0].data().chatHistory || [];
-                setChatHistory(chatData);
+                chatHistoryRef.current = chatData;
                 const lastChats = chatData.slice(-initialChatLength);
                 setChat(lastChats);
                 setLastFetchedDoc(chatData.length - lastChats.length);
@@ -126,14 +137,17 @@ const ChatComponent = () => {
 
         console.log("Refreshing");
         try {
-            if (chatHistory.length === 0) {
+            if (chatHistoryRef.current.length === 0) {
                 console.log("No chat history available.");
                 return;
             }
 
             const start = Math.max(0, lastFetchedDoc - initialChatLength);
 
-            const moreMessages = chatHistory.slice(start, lastFetchedDoc);
+            const moreMessages = chatHistoryRef.current.slice(
+                start,
+                lastFetchedDoc
+            );
 
             if (moreMessages.length > 0) {
                 setChat((prevChat) => [...moreMessages, ...prevChat]);

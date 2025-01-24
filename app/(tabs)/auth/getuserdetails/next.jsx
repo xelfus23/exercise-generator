@@ -5,7 +5,7 @@ import {
     widthPercentageToDP as WP,
 } from "react-native-responsive-screen";
 import { MyColors } from "@/constants/myColors";
-import Loading from "../../../../../components/customs/loading";
+import Loading from "../../../../components/customs/loading";
 
 export default function NextButtons({
     next,

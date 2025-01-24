@@ -274,6 +274,7 @@ const styles = (role, part) =>
             borderRadius: WP(4),
             borderWidth: 3,
             borderColor: role === "user" ? "#4b4b4b" : "#313131",
+            elevation: 7,
         },
         text: {
             color: MyColors(0.8).white,

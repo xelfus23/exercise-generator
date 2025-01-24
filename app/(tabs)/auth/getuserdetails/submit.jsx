@@ -1,10 +1,14 @@
 import { View, Text, ScrollView, StyleSheet } from "react-native";
 import React, { useState } from "react";
-import { heightPercentageToDP as HP, widthPercentageToDP as WP } from "react-native-responsive-screen";
+import {
+    heightPercentageToDP as HP,
+    widthPercentageToDP as WP,
+} from "react-native-responsive-screen";
 import { MyColors } from "@/constants/myColors";
 import NextButtons from "./next";
 
 export default function SubmitScreen({
+    nickName,
     selectedGender,
     selectedHeightAndWeight,
     selectedBirthDay,
@@ -60,7 +64,6 @@ export default function SubmitScreen({
         next(-1);
     };
 
-
     return (
         <ScrollView
             style={{ marginTop: HP(5) }}
@@ -85,6 +88,20 @@ export default function SubmitScreen({
                 >
                     Review your information
                 </Text>
+                <View
+                    style={{
+                        flexDirection: "row",
+                        alignItems: "center",
+                        gap: HP(1),
+                        borderWidth: 1,
+                        borderRadius: WP(2),
+                        borderColor: MyColors(1).gray,
+                        padding: HP(1),
+                    }}
+                >
+                    <Text style={submitStyles.label}>Nickname:</Text>
+                    <Text style={submitStyles.value}>{nickName}</Text>
+                </View>
                 <View
                     style={{
                         flexDirection: "row",
@@ -172,7 +189,8 @@ export default function SubmitScreen({
                     <Text style={submitStyles.value}>
                         {selectedGoal?.map(
                             (v, i) =>
-                                `• ${v} ${i !== selectedGoal.length - 1 ? "\n" : ""
+                                `• ${v} ${
+                                    i !== selectedGoal.length - 1 ? "\n" : ""
                                 }`
                         )}
                     </Text>
@@ -249,7 +267,8 @@ export default function SubmitScreen({
                     <Text style={submitStyles.value}>
                         {selectedPlaces?.map(
                             (v, i) =>
-                                `• ${v} ${i !== selectedPlaces.length - 1 ? "\n" : ""
+                                `• ${v} ${
+                                    i !== selectedPlaces.length - 1 ? "\n" : ""
                                 }`
                         )}
                     </Text>
@@ -294,7 +313,7 @@ export default function SubmitScreen({
             />
         </ScrollView>
     );
-};
+}
 
 const submitStyles = StyleSheet.create({
     label: {

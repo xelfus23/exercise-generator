@@ -94,7 +94,7 @@ const StackedBarChartBlock = ({ allDaysInAWeek, progress, exercisePlans }) => {
     const scrollViewRef = useRef(null);
 
     const scrollToRight = () => {
-        scrollViewRef.current.scrollToEnd({ animated: true });
+        scrollViewRef.current?.scrollToEnd({ animated: true });
     };
 
     const selectPlan = (num, plan, weeks) => {

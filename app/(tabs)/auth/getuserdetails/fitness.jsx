@@ -6,7 +6,7 @@ import {
 } from "react-native-responsive-screen";
 import { MyColors } from "@/constants/myColors";
 import { LinearGradient } from "expo-linear-gradient";
-import Xstyles from "../../../auth/authStyles";
+import Xstyles from "../../auth/authStyles";
 const LoginRegisterStyle = Xstyles.LoginRegisterStyle;
 const styles = Xstyles.style;
 import NextButtons from "./next";

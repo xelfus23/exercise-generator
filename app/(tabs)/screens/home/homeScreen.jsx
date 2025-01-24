@@ -20,16 +20,19 @@ import CustomAlert from "@/components/customs/customAlert";
 import { useAuth } from "@/components/auth/authProvider";
 import Loading from "@/components/customs/loading";
 import Blocks from "./blocks";
-import HWmodal from "./hwmodal";
 import Banner from "./banner";
+import { useNavigation, useRouter } from "expo-router";
+import { useSegments } from "expo-router";
+
 export default function HomeScreen() {
-    const { user, isLoading, showModal, setShowModal } = useAuth();
+    const { user, isLoading, showModal } = useAuth();
     const [showAlert, setShowAlert] = useState(false);
     const [scrollPosition, setScrollPosition] = useState(0); // State to track scroll position
     const [pedometerAvailable, setPedometerAvailable] = useState("Checking");
     const [stepCount, setStepCount] = useState(0); // Live step count
     const [pastStepCount, setPastStepCount] = useState(0); // Steps before app opened
     const [calories, setCalories] = useState(1500);
+    const navigation = useNavigation();
 
     const blocksData = [
         {
@@ -70,11 +73,16 @@ export default function HomeScreen() {
         setScrollPosition(x);
     };
 
-    const [isTutorial, setIsTutorial] = useState(true);
+    useEffect(() => {
+        if (showModal) {
+            navigation.navigate("getDetails");
+        }
+    }, []);
+
+    const [isTutorial, setIsTutorial] = useState(false);
 
     return (
         <SafeAreaView style={styles.mainContainer}>
-            {showModal && <HWmodal setShowModal={setShowModal} />}
             {showAlert && (
                 <CustomAlert
                     message={"Do you want to save the changes?"}

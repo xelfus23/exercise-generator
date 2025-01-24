@@ -1,35 +1,32 @@
-import { StyleSheet, View, SafeAreaView, Text, TouchableOpacity, ScrollView, TextInput, Modal, Image } from "react-native";
+import { StyleSheet, View, SafeAreaView } from "react-native";
 import React, { useRef, useState, useEffect } from "react";
 import { MyColors } from "@/constants/myColors";
-import { widthPercentageToDP as WP, heightPercentageToDP as HP, } from "react-native-responsive-screen";
-import { Ionicons } from "@expo/vector-icons";
+import {
+    widthPercentageToDP as WP,
+    heightPercentageToDP as HP,
+} from "react-native-responsive-screen";
 import { useNavigation } from "expo-router";
-const { GoogleGenerativeAI, HarmCategory, HarmBlockThreshold, } = require("@google/generative-ai");
 import ChatComponent from "./apiService";
 import { useAuth } from "@/components/auth/authProvider";
-import ScrollableInput from '@/components/customs/scrollableInput'
 import CustomHeaderB from "../settings/customDrawerLabel";
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-const ChatNavigator = () => {
-    return <MainChat />;
-};
-
-//--------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-const MainChat = () => {
-    const { user } = useAuth();
+export default function ChatNavigator() {
+    const { user, updateUserData } = useAuth();
     const navigation = useNavigation();
 
     return (
         <SafeAreaView style={styles.mainContainer}>
-            <CustomHeaderB navigation={() => navigation.openDrawer()} text={user.chatBotName || 'AI Chat'} chat={true} />
-            <ChatComponent />
+            <CustomHeaderB
+                navigation={() => navigation.openDrawer()}
+                text={"AI Chat"}
+                chat={true}
+            />
+            <ChatComponent user={user} updateUserData={updateUserData} />
         </SafeAreaView>
     );
-};
-
+}
 
 const styles = StyleSheet.create({
     mainContainer: {
@@ -82,5 +79,3 @@ const styles = StyleSheet.create({
         height: 1,
     },
 });
-
-export default ChatNavigator;

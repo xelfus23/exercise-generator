@@ -23,17 +23,14 @@ import { Feather } from "@expo/vector-icons";
 import ProgressBar from "react-native-progress/Bar.js";
 import { useNavigation } from "expo-router";
 import Loading from "@/components/customs/loading.jsx";
-import generator from "./exerciseGenerator.jsx";
 import { getAuth } from "firebase/auth";
 import { AntDesign } from "@expo/vector-icons";
-import { userData } from "@/components/auth/userData.jsx";
+import userData from "@/components/auth/userData.jsx";
 import Entypo from "@expo/vector-icons/Entypo";
 import OtherExercise from "./otherExercise/otherExercise.jsx";
 import CustomHeaderB from "../settings/customDrawerLabel.jsx";
 import { LinearGradient } from "expo-linear-gradient";
 import { tunedParts } from "./AI/parts.jsx";
-import planGeneratorInstructions from "./AI/planGeneratorInstructions.jsx";
-import { planUpgradeInstructions } from "./AI/planUpgradeInstructions.jsx";
 import RenderItem from "./otherExercise/otherExerciseBlock.jsx";
 import Robot from "./AI/robot.jsx";
 import {
@@ -46,6 +43,7 @@ import LottieView from "lottie-react-native";
 import ExerciseDescriptions from "./descriptions/exercisedescription.jsx";
 import RecommendedItems from "./recommendedItems.jsx";
 import Zstyles from "./styles.jsx";
+import PlanGenerator from "./AI/planGenerator.jsx";
 
 const RStyles = Zstyles.RStyles;
 const levelStyles = Zstyles.levelStyles;
@@ -61,15 +59,13 @@ const Exercises = ({ route }) => {
         exercisePlans,
         progress,
         completedExerciseToday,
+        isAuthenticated,
     } = useAuth();
-    const {
-        exerciseGenerator,
-        upgradeExercisePlan,
-        addToDatabase,
-        getStorage,
-        addUpgradeToDatabase,
-    } = generator();
+
+    if (!isAuthenticated) return null;
+
     const data = userData();
+    const { Generate } = PlanGenerator();
     const [selectedItem, setSelectedItem] = useState(null);
     const [showModal, setShowModal] = useState(false);
     const navigation = useNavigation();
@@ -90,49 +86,33 @@ const Exercises = ({ route }) => {
     const [activeIndex, setActiveIndex] = useState(0);
     const scrollViewRef123 = useRef(null);
     const scrollViewRef = useRef(null);
+    const [isError, setIsError] = useState(false);
 
     const runGenerator = async () => {
-        console.log("running generator");
-        const currentInput = userInput; // Store input before clearing
+        console.log("Running Generator");
+        const currentInput = userInput;
         setUserInput(null);
         setGenerating(true);
-        setErrorGenerating("generating...");
+        setErrorGenerating("Generating...");
+        setIsError(false);
+
         try {
-            console.log("trying");
-            const newExercisePlan = await exerciseGenerator({
+            console.log("generate 1");
+            const result = await Generate({
                 input: currentInput,
                 setError: setErrorGenerating,
                 setGenerating: setGenerating,
-                instructions: planGeneratorInstructions(data),
+                setIsError: setIsError,
             });
-
-            console.log(newExercisePlan);
-            const parsedPlan = JSON.parse(newExercisePlan);
-            if (parsedPlan) {
-                setErrorGenerating("please wait...");
-                if (parsedPlan.error) {
-                    setErrorGenerating("hmmm...");
-
-                    setTimeout(() => {
-                        setErrorGenerating(parsedPlan.error);
-                        setGenerating(false);
-                    }, 2000);
-                } else {
-                    setErrorGenerating("Adding to database...");
-                    await addToDatabase(
-                        parsedPlan,
-                        currentUser,
-                        setErrorGenerating
-                    );
-                    setErrorGenerating("Completed!");
-                    setGenerating(false);
-                }
+            if (result.success) {
+            } else {
+                return runGenerator();
             }
         } catch (error) {
-            console.log(error);
-            return runGenerator();
+            console.warn("Error Stage 1:", error);
         } finally {
-            updateUserData(currentUser.uid);
+            await updateUserData(currentUser.uid);
+            setGenerating(false);
         }
     };
 
@@ -141,8 +121,7 @@ const Exercises = ({ route }) => {
     }, []);
 
     useEffect(() => {
-        if (exercisePlans.length === 0) {
-            console.log("No exercise plan");
+        if (exercisePlans.length === 0 && todayExercise.length === 0) {
             runGenerator();
         }
     }, [exercisePlans]);
@@ -237,6 +216,23 @@ const Exercises = ({ route }) => {
             setBusy(false);
         }, 500);
     };
+
+    // Function to sort exercises: Incomplete first
+      const sortExercises = (exercises) => {
+        if (!exercises) return [];
+        return [...exercises].sort((a, b) => {
+            // Sort by completed status
+            if (a.exercise.completed && !b.exercise.completed) {
+                return 1; // b (not completed) comes first
+            }
+            if (!a.exercise.completed && b.exercise.completed) {
+                return -1; // a (not completed) comes first
+            }
+            return 0; // Keep the original order if both have the same completed status
+        });
+    };
+
+    const sortedTodayExercise = sortExercises(todayExercise);
 
     return (
         <ScrollView
@@ -434,7 +430,7 @@ const Exercises = ({ route }) => {
                                         ref={scrollViewRef2}
                                         onScroll={itemScrolls}
                                     >
-                                        {todayExercise?.map(
+                                        {sortedTodayExercise?.map(
                                             (todayExercise, exerciseIndex) => (
                                                 <View
                                                     key={`todayExercise-${exerciseIndex}`}
@@ -461,7 +457,7 @@ const Exercises = ({ route }) => {
                                             top: -20,
                                         }}
                                     >
-                                        {todayExercise?.map((v, i) => (
+                                        {sortedTodayExercise?.map((v, i) => (
                                             <View
                                                 key={i}
                                                 style={{
@@ -619,12 +615,33 @@ const Exercises = ({ route }) => {
                                     justifyContent: "center",
                                 }}
                             >
-                                <LottieView
-                                    source={require("@/assets/json/typing.json")}
-                                    loop
-                                    autoPlay
-                                    style={{ height: HP(4) }}
-                                />
+                                {!isError ? (
+                                    <LottieView
+                                        source={require("@/assets/json/typing.json")}
+                                        loop
+                                        autoPlay
+                                        style={{ height: HP(4) }}
+                                    />
+                                ) : (
+                                    <TouchableOpacity
+                                        style={{
+                                            backgroundColor: MyColors(1).gray,
+                                            paddingHorizontal: WP(2),
+                                            borderRadius: WP(4),
+                                            paddingVertical: HP(1),
+                                        }}
+                                    >
+                                        <Text
+                                            style={{
+                                                fontWeight: "bold",
+                                                color: MyColors(0.9).white,
+                                                textAlign: "center",
+                                            }}
+                                        >
+                                            Retry
+                                        </Text>
+                                    </TouchableOpacity>
+                                )}
                             </View>
                         </View>
                     </View>

@@ -30,18 +30,32 @@ import SubmitScreen from "./getuserdetails/submit";
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
-const heightOptions = Array.from({ length: 1441 }, (_, i) => ({
-    label: (i * 0.1 + 80).toFixed(1),
-    value: (i * 0.1 + 80).toFixed(1),
-}));
+const getWeight = () => {
+    const array = Array.from({ length: 2141 }, (_, i) => ({
+        value: (i * 0.1 + 20).toFixed(1),
+    }));
+    return array;
+};
 
-const weightOptions = Array.from({ length: 2141 }, (_, i) => ({
-    label: (i * 0.1 + 20).toFixed(1),
-    value: (i * 0.1 + 20).toFixed(1),
-}));
+const getHeight = () => {
+    const array = Array.from({ length: 1441 }, (_, i) => ({
+        value: (i * 0.1 + 80).toFixed(1),
+    }));
+    return array;
+};
 
-export default function HWmodal({ setShowModal }) {
-    const { updateUserData, user, } = useAuth();
+const weightOptions = getWeight();
+const heightOptions = getHeight();
+
+export default function HWmodal() {
+    const {
+        updateUserData,
+        user,
+        setIsAuthenticated,
+        checkInitializationStatus,
+        initialUser,
+        setInitialUser,
+    } = useAuth();
     const today = new Date();
 
     const [nickName, setNickName] = useState(null);
@@ -90,6 +104,14 @@ export default function HWmodal({ setShowModal }) {
         }
     }, [isSubmit]);
 
+    const [isFinished, setIsFinished] = useState(false);
+
+    useEffect(() => {
+        if (isFinished) {
+            checkInitializationStatus(user);
+        }
+    }, [isFinished]);
+
     const HandleSubmit = async () => {
         if (
             nickName &&
@@ -102,10 +124,10 @@ export default function HWmodal({ setShowModal }) {
             selectedPlaces.length > 0
         ) {
             const auth = getAuth();
-            const user = auth.currentUser;
+            const currentUser = auth.currentUser;
             try {
                 await setDoc(
-                    doc(db, "users", user.uid),
+                    doc(db, "users", currentUser.uid),
                     {
                         nickName: nickName,
                         gender: selectedGender,
@@ -123,14 +145,31 @@ export default function HWmodal({ setShowModal }) {
                     },
                     { merge: true }
                 );
-                await updateUserData(user.uid);
-                setShowModal(false);
+                console.log(
+                    "HWmodal: HandleSubmit - User document updated successfully"
+                );
+                console.log(
+                    "HWmodal: HandleSubmit - Calling updateUserData",
+                    user.uid
+                );
+
+                await updateUserData(currentUser.uid);
+
+                console.log(
+                    "HWmodal: HandleSubmit - after updateUserData",
+                    user
+                );
+                console.log(
+                    "HWmodal: HandleSubmit - updateUserData finished, setting isAuth to true"
+                );
+
+                setIsFinished(true);
             } catch (error) {
                 console.error("Error updating document: ", error);
                 Alert.alert("Error updating profile", error.message);
             }
         } else {
-            Alert.alert("Please fill all required fields");
+            Alert.alert("Error", "Please fill all required fields");
         }
     };
 
@@ -210,6 +249,7 @@ export default function HWmodal({ setShowModal }) {
             next={nextButton}
         />,
         <SubmitScreen
+            nickName={nickName}
             selectedGender={selectedGender}
             selectedHeightAndWeight={selectedHeightAndWeight}
             selectedBirthDay={birthDay}

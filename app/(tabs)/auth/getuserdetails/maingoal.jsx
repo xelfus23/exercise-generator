@@ -4,7 +4,7 @@ import { heightPercentageToDP as HP, widthPercentageToDP as WP } from "react-nat
 import { MyColors } from "@/constants/myColors";
 import NextButtons from './next'
 import styles from "./styles";
-import stylesX from '../../../auth/authStyles'
+import stylesX from '../../auth/authStyles'
 const LoginRegisterStyle = stylesX.LoginRegisterStyle
 
 export default function MainGoal({ setSelectedGoal, selectedGoal, next }) {

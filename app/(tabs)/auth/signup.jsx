@@ -1,16 +1,20 @@
 import { View, Text, ScrollView } from "react-native";
 import React, { useRef, useState } from "react";
-import { widthPercentageToDP as WP, heightPercentageToDP as HP } from "react-native-responsive-screen";
+import {
+    widthPercentageToDP as WP,
+    heightPercentageToDP as HP,
+} from "react-native-responsive-screen";
 import { useAuth } from "@/components/auth/authProvider";
 import ScrollableInput from "@/components/customs/scrollableInput";
 import Loading from "@/components/customs/loading";
 import Feather from "@expo/vector-icons/Feather";
 import { getAuth } from "firebase/auth";
-import styles from '../auth/authStyles'
-const LoginRegisterStyle = styles.LoginRegisterStyle
-import NameRegistration from './signup/namereg'
-import PasswordRegistration from './signup/passwordreg'
-import EmailRegistration from './signup/emailreg'
+import styles from "../auth/authStyles";
+const LoginRegisterStyle = styles.LoginRegisterStyle;
+import NameRegistration from "./signup/namereg";
+import PasswordRegistration from "./signup/passwordreg";
+import EmailRegistration from "./signup/emailreg";
+import { useNavigation } from "expo-router";
 
 const Signup = () => {
     const { register, updateUserData } = useAuth();
@@ -19,6 +23,7 @@ const Signup = () => {
     const [lastName, setLastName] = useState(null);
     const [password, setPassword] = useState(null);
     const [scrolling, setScrolling] = useState(false);
+    const navigation = useNavigation();
     const currentUser = getAuth().currentUser;
 
     const handleSubmit = async (email, setLoading, setError) => {
@@ -33,7 +38,8 @@ const Signup = () => {
             if (!response.success) {
                 setError(response.msg);
             } else {
-                updateUserData(currentUser.uid);
+                navigation.navigate("getDetails");
+                await updateUserData(response.data);
             }
         } catch (error) {
             setError(error.message || "An unexpected error occurred.");
@@ -100,9 +106,5 @@ const Signup = () => {
         </ScrollableInput>
     );
 };
-
-
-
-
 
 export default Signup;

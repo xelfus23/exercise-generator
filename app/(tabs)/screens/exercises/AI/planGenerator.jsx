@@ -1,28 +1,37 @@
+import React, { useEffect, useState } from "react";
+import { getAuth } from "firebase/auth";
+import PlanInstructions from "./instructions/planInstructions";
+import DayInstructions from "./instructions/dayInstructions";
+import UserData from "@/components/auth/userData";
+import PlanParts from "./parts";
 import {
-    setDoc,
-    doc,
     collection,
+    doc,
     getDocs,
-    serverTimestamp,
-    getDoc,
+    setDoc,
     updateDoc,
 } from "firebase/firestore";
-import { getAuth } from "firebase/auth";
-import { db, storage } from "@/components/firebase/config";
+import { db } from "@/components/firebase/config";
 import { useAuth } from "@/components/auth/authProvider";
-import tunedParts from "./AI/parts";
-import { getDownloadURL, ref } from "firebase/storage";
-import { useEffect, useState } from "react";
 
-const generator = () => {
-    const { user } = useAuth();
-    const { GoogleGenerativeAI } = require("@google/generative-ai");
+const PlanGenerator = () => {
+    const {
+        GoogleGenerativeAI,
+        HarmCategory,
+        HarmBlockThreshold,
+    } = require("@google/generative-ai");
     const apiKey = "AIzaSyCmhylFECtUBZlWpD6LJIQn9llBPmqbZ_c";
     const genAI = new GoogleGenerativeAI(apiKey);
-    const [AIparts, setAIParts] = useState(null);
+    const config = {
+        temperature: 0.4,
+        topP: 0.95,
+        topK: 64,
+        maxOutputTokens: 8192,
+        responseMimeType: "application/json",
+    };
     const currentUser = getAuth().currentUser;
 
-    //TODO: Fetch every exercise week from firebase
+    const userData = UserData();
 
     const getStorage = async (plan) => {
         try {
@@ -42,10 +51,8 @@ const generator = () => {
                     const exerciseData = doc.data();
                     exerciseData?.exercisePlans?.forEach((pl) => {
                         if (pl.title === plan.title) {
-                            // Extract the main plan (week1) and other weeks
-                            mainPlan = { ...pl }; // Copy the plan data
+                            mainPlan = { ...pl };
 
-                            // Separate out the weeks
                             pl.weeks?.forEach((week, index) => {
                                 if (index === 0 && week.week1) {
                                     // Week1 for the main plan
@@ -117,138 +124,98 @@ const generator = () => {
                 return { AI_PARTS, mainPlan };
             }
         } catch (error) {
-            console.log(error);
+            console.warn(error);
         }
     };
 
-    const generationConfig = {
-        temperature: 0.4,
-        topP: 0.95,
-        topK: 64,
-        maxOutputTokens: 8192,
-        responseMimeType: "application/json",
-    };
-
-    const delay = (ms) => new Promise((resolve) => setTimeout(resolve, ms));
-
-    const exerciseGenerator = async (
-        { input, setError, setGenerating, instructions },
-        retries = 5
-    ) => {
-        console.log("Generating");
+    const generatePlan = async ({ input, setError, instructions }) => {
         setError && setError("generating exercise please wait...");
-        if (instructions) {
+
+        try {
+            const model = genAI.getGenerativeModel({
+                model: "gemini-1.5-flash",
+                systemInstruction: instructions,
+            });
+
+            const parts = await PlanParts({ prompt: input });
+
+            console.log("PARTS", parts);
+
             try {
-                console.log(instructions)
-                const model = genAI.getGenerativeModel({
-                    model: "gemini-1.5-flash",
-                    systemInstruction: instructions,
+                const results = await model.generateContent({
+                    contents: [{ role: "user", parts: parts }],
+                    generationConfig: config,
                 });
 
-                const parts = await tunedParts(input, AIparts);
-
-                console.log(parts);
-                setError && setError("generating...");
-                try {
-                    const results = await model.generateContent({
-                        contents: [{ role: "user", parts }],
-                        generationConfig,
-                    });
-                    const result = results.response.text(); // Ensure this is accessing the correct part of the response
-                    if (result) {
-                        return result;
-                    }
-                } catch (error) {
-                    console.log("Error generating exercise:", error);
-                    setError &&
-                        setError(
-                            "An error occurred while generating the exercise plan, please try again"
-                        );
-                }
+                return results.response.text();
             } catch (error) {
-                if (retries > 0) {
-                    console.log(`Retrying... (${5 - retries + 1}/5)`);
-                    await delay(3000); // Delay for 2 seconds
-                    return exerciseGenerator(
-                        {
-                            input: input,
-                            setError: setError,
-                            setGenerating: setGenerating,
-                            instructions: instructions,
-                        },
-                        retries - 1
-                    );
-                } else {
-                    setError &&
-                        setError(
-                            "Error: Unable to generate exercise plan after multiple attempts. Please try again later."
-                        );
-                    return null; // Return null or handle the failure case appropriately
-                }
-            }
-        }
-    };
-
-    const upgradeExercisePlan = async ({ instructions, parts }) => {
-        if (instructions) {
-            try {
-                const model = genAI.getGenerativeModel({
-                    model: "gemini-1.5-flash",
-                    systemInstruction: instructions,
-                });
-
-                try {
-                    const results = await model.generateContent({
-                        contents: [{ role: "user", parts }],
-                        generationConfig,
-                    });
-                    const result = results.response.text(); // Ensure this is accessing the correct part of the response
-
-                    if (result) {
-                        return result;
-                    }
-                } catch (error) {
-                    console.log("Error upgrading exercise:", error);
-                }
-            } catch (error) {
-                await delay(3000);
-                return upgradeExercisePlan({
+                console.warn("Error stage 4:", error);
+                return generatePlan({
+                    input: input,
+                    setError: setError,
                     instructions: instructions,
                 });
             }
+        } catch (error) {
+            console.warn("Error Stage 3:", error);
+            return null;
         }
     };
 
-    const addUpgradeToDatabase = async (data, plan) => {
+    const safetySettings = [
+        {
+            category: HarmCategory.HARM_CATEGORY_HARASSMENT,
+            threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+            category: HarmCategory.HARM_CATEGORY_HATE_SPEECH,
+            threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+            category: HarmCategory.HARM_CATEGORY_SEXUALLY_EXPLICIT,
+            threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+        {
+            category: HarmCategory.HARM_CATEGORY_DANGEROUS_CONTENT,
+            threshold: HarmBlockThreshold.BLOCK_NONE,
+        },
+    ];
+
+    const generateDaily = async ({
+        input,
+        instructions,
+        retry = 5,
+        setIsError,
+    }) => {
         try {
-            const auth = getAuth();
-
-            const currentUser = auth.currentUser;
-            const userDocRef = doc(db, "users", currentUser.uid);
-            const subCollectionRef = collection(userDocRef, "exercisePlans");
-
-            const querySnapshot = await getDocs(subCollectionRef);
-
-            const promises = querySnapshot.docs.map(async (doc) => {
-                const exercisePlans = doc.data().exercisePlans;
-
-                for (const item of exercisePlans) {
-                    if (item.title === plan.title) {
-                        // how do I update the item inside the item property named weeks,
-                        const newWeek = data;
-                        item.weeks.push(newWeek);
-                        await updateDoc(doc.ref, { exercisePlans });
-                    }
-                }
-
-                return null;
+            const model = genAI.getGenerativeModel({
+                model: "gemini-1.5-flash",
+                systemInstruction: instructions,
+                safetySettings,
             });
-        } catch (e) {
-            console.log(e);
+            const parts = await PlanParts({ prompt: input });
+            const results = await model.generateContent({
+                contents: [{ role: "user", parts: parts }],
+                generationConfig: config,
+            });
+            return results.response.text();
+        } catch (error) {
+            console.warn(`Error Stage 5 (Retry ${6 - retry}):`, error);
+            if (retry > 0) {
+                return generateDaily({
+                    input: input,
+                    instructions: instructions,
+                    retry: retry - 1,
+                    setIsError: setIsError,
+                });
+            } else {
+                setIsError(true);
+                return `{"error":"An error has occurred while generating the exercise plan, please try again."}`;
+            }
         }
     };
 
-    const addToDatabase = async (exercisePlanData, user, setError) => {
+    const addToDatabase = async (exercisePlanData) => {
         try {
             const auth = getAuth();
             const currentUser = auth.currentUser;
@@ -271,22 +238,77 @@ const generator = () => {
                         otherExercise: [...exercisePlans, exercisePlanData],
                     });
                 });
-                await Promise.all(promises); // Ensure all updates are complete
+                await Promise.all(promises);
             }
         } catch (error) {
-            console.error("Error saving exercise data to Firestore:", error);
-            if (setError)
-                setError("Error saving exercise data. Please try again.");
+            console.warn("Error saving exercise data to Firestore:", error);
+        }
+    };
+
+    const planInstructions = PlanInstructions(userData);
+
+    const Generate = async ({ input, setError, setGenerating, setIsError }) => {
+        try {
+            setError("Generating...");
+            setGenerating("Generating plan please wait...");
+            console.log("INPUT:", input);
+
+            const firstResult = await generatePlan({
+                instructions: planInstructions,
+                input: input,
+            });
+
+            console.log("FIRST RESULT:", firstResult);
+
+            const parsedFirstResult = JSON.parse(firstResult);
+
+            if (!parsedFirstResult.error) {
+                const dayInstructions = DayInstructions({
+                    planResult: parsedFirstResult,
+                    data: userData,
+                });
+
+                setGenerating("Adding exercise...");
+                setError("Adding Exercise...");
+
+                const secondResult = await generateDaily({
+                    input: input,
+                    instructions: dayInstructions,
+                    setIsError: setIsError,
+                });
+
+                console.log("SECOND RESULT:", secondResult);
+
+                const parsedSecondResult = JSON.parse(secondResult);
+
+                if (
+                    parsedFirstResult.weeks &&
+                    Array.isArray(parsedFirstResult.weeks)
+                ) {
+                    parsedFirstResult.weeks.forEach((week) => {
+                        if (week["week1"]) {
+                            week["week1"] = parsedSecondResult["week1"];
+                        }
+                    });
+                }
+
+                setError("Adding to database...");
+                setGenerating("Adding to database...");
+                await addToDatabase(parsedFirstResult);
+                return { success: true };
+            } else {
+                setError(parsedFirstResult.error);
+                return { success: true };
+            }
+        } catch (e) {
+            console.warn("Error Stage 2: ", e);
+            return { success: false };
         }
     };
 
     return {
-        addToDatabase,
-        upgradeExercisePlan,
-        exerciseGenerator,
-        addUpgradeToDatabase,
-        getStorage,
+        Generate,
     };
 };
 
-export default generator;
+export default PlanGenerator;
