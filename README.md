@@ -1,27 +1,35 @@
-# React Native Authentication and User Details Flow
+# React Native Exercise/Workout Plan Generator
 
-This repository contains a React Native application that demonstrates a robust authentication system and a user details collection flow using Firebase. It addresses a common challenge of managing asynchronous operations and state updates in React Native.
+This repository contains a React Native application that generates personalized exercise or workout plans using the Google Gemini API. It allows users to specify their fitness goals, preferences, and other details to create a tailored workout routine.
 
 ## Features
 
+-   **Gemini API Integration:**
+    -   Utilizes the Google Gemini API to generate custom workout plans based on user inputs.
+    -   Handles API requests and responses for seamless plan generation.
+-   **User Input Collection:**
+    -   Collects user details like fitness level, preferred workout type, and available equipment through a step-by-step modal flow.
+    -   Provides various input fields for detailed preference settings.
+-   **Workout Plan Display:**
+    -   Presents the generated workout plan in a clear and organized format.
+    -   Potentially includes details such as exercise names, sets, reps, rest times, and durations.
 -   **Firebase Authentication:**
     -   User registration and login with email and password.
     -   User logout.
     -   Password change functionality.
     -   Handles various authentication errors such as invalid credentials and duplicate emails.
 -   **Firestore Integration:**
-    -   Saves and retrieves user details (nickname, gender, birthdate, etc.) from Firestore.
+    -   Saves and retrieves user details (nickname, gender, birthdate, etc.) and potentially workout plans to Firestore.
     -   Handles asynchronous data updates and state management for user data.
--   **Modal-Based User Details Collection:**
-    -   A modal-based flow for collecting user details step-by-step.
-    -   Includes various input fields like nickname, gender, date of birth, height/weight, body fat percentage, main goal, preferred places, activity level, and fitness level.
--   **Navigation Management:**
+-    **Navigation Management:**
     -   Uses Expo Router for navigation.
     -   Handles initial navigation after authentication and after the user fills the details for the first time.
     -   Prevents race conditions that can lead to incorrect navigation.
--   **Asynchronous State Management:**
+-    **Asynchronous State Management:**
     -   Implements React's `useEffect` hook with a carefully managed dependency array to handle asynchronous state updates in the `AuthContextProvider`.
     -   The use of a boolean `initialCheckDone` state to run the `checkInitializationStatus` only once after the user initially enters details.
+-   **Responsive UI:**
+    -  The UI is created using react native elements and responsive-screen
 
 ## Key Components
 
@@ -40,6 +48,12 @@ This repository contains a React Native application that demonstrates a robust a
 -   `getuserdetails/`:
     -   Folder containing all the components for the modal for the user details collection.
     -  Contains components such as `nickname.js`, `gender.js`, `birthdate.js`, etc.
+-   `GeminiAPI.js` (or similar):
+    -   Handles interaction with the Google Gemini API.
+    -   Formats the user inputs and makes the API calls.
+    -   Parses the response from Gemini and formats it into a displayable workout plan.
+-  `WorkoutPlan.js`:
+   - The component that takes the response from the GeminiAPI, parses it and shows the generated workout plan.
 
 ## Getting Started
 
@@ -49,6 +63,7 @@ This repository contains a React Native application that demonstrates a robust a
 -   npm or yarn
 -   Expo CLI
 -   Firebase project
+-   Google Gemini API access
 
 ### Installation
 
@@ -83,8 +98,15 @@ This repository contains a React Native application that demonstrates a robust a
           appId: "YOUR_APP_ID",
         };
         ```
+4.  Set up the Google Gemini API:
+      -   Set up the Google Gemini API.
+      -  Create an API key and save it in a `.env` file.
 
-4.  Start the Expo development server:
+        ```env
+         GEMINI_API_KEY = "YOUR_GEMINI_API_KEY"
+        ```
+
+5.  Start the Expo development server:
 
     ```bash
     npm start
@@ -92,7 +114,7 @@ This repository contains a React Native application that demonstrates a robust a
     yarn start
     ```
 
-5.  Scan the QR code or use an emulator/simulator to run the app.
+6.  Scan the QR code or use an emulator/simulator to run the app.
 
 ## Usage
 
@@ -100,13 +122,16 @@ This repository contains a React Native application that demonstrates a robust a
 -   After successful login or registration, the user is taken to the user details screen.
 -   The user fills out the details through the modal.
 -   Once the details are submitted the user is navigated to the home screen.
+-   On the home screen, the user can generate workout plans using the Gemini API.
+-   Generated workout plans are then displayed to the user.
 -   Upon subsequent logins, the user is directly navigated to the home screen.
 
 ## Key Concepts and Best Practices
 
+-  **Gemini API Integration:** Demonstrates how to interact with the Gemini API for natural language-based tasks.
 -   **Race Condition Handling:** The initial versions of this code encountered a race condition where navigation occurred before data was fully updated. This was solved by the `useEffect` hook that only executes after the user state is updated.
 -   **`useEffect` Dependency Arrays:** Proper use of dependency arrays in `useEffect` hooks is crucial to manage side effects correctly.
--   **Asynchronous Operations:** The code demonstrates the use of `async/await` for handling asynchronous Firebase operations and state updates.
+-   **Asynchronous Operations:** The code demonstrates the use of `async/await` for handling asynchronous Firebase operations and state updates and api requests.
 -   **Single Source of Truth:** The `user` object in `AuthContextProvider` acts as the single source of truth for user data throughout the application.
 
 ## Contributing
@@ -128,3 +153,4 @@ This project is licensed under the MIT License - see the [LICENSE.md](LICENSE.md
 -   [React Native](https://reactnative.dev/)
 -   [Firebase](https://firebase.google.com/)
 -   [Expo](https://expo.io/)
+-   [Google Gemini API](https://ai.google.dev/gemini-api)
