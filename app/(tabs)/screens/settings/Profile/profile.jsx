@@ -1,5 +1,13 @@
-import { View, Text, StyleSheet, ScrollView } from "react-native";
-import React, { useState, useEffect } from "react";
+import {
+    View,
+    Text,
+    ScrollView,
+    Animated,
+    Image,
+    TouchableOpacity,
+    Pressable,
+} from "react-native";
+import React, { useState, useEffect, useRef } from "react";
 import { MyColors } from "../../../../../constants/myColors";
 import { useAuth } from "@/components/auth/authProvider";
 import {
@@ -7,21 +15,23 @@ import {
     heightPercentageToDP as HP,
 } from "react-native-responsive-screen";
 import ProfilePic from "./profilePic";
-import { accountstyles } from "../account/account";
 import CustomHeaderB from "../customDrawerLabel";
 import { useNavigation } from "expo-router";
-import { TouchableOpacity } from "react-native";
-import { Entypo } from "@expo/vector-icons";
+import Feather from "@expo/vector-icons/Feather";
+import { LinearGradient } from "expo-linear-gradient";
 
 export default function Profile() {
-    const { user } = useAuth();
+    const { user, allExerciseToday } = useAuth();
     const [description, setDescription] = useState(null);
     const [age, setAge] = useState(null);
     const [formattedDate, setFormattedDate] = useState(null);
+    const [selectedItem, setSelectedItem] = useState(null);
 
     const bodyMetrics = user?.bodyMetrics;
     const heightAndWeight = bodyMetrics?.heightAndWeight;
     const birthDate = user?.birthDate;
+
+    const circumferences = bodyMetrics?.circumferences;
 
     const birthDay = birthDate.day;
     const birthMonth = birthDate.month;
@@ -34,6 +44,8 @@ export default function Profile() {
 
     const heightInMeters = height / 100;
     const BMI = weight / (heightInMeters * heightInMeters);
+
+    const scrollY = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         if (BMI < 18.5) {
@@ -57,8 +69,8 @@ export default function Profile() {
         }
     }, [user]);
 
-    const handleGender = () => {
-        switch (user.gender) {
+    const handleGender = (v) => {
+        switch (v) {
             case "Male":
                 return "Male";
             case "Female":
@@ -70,145 +82,426 @@ export default function Profile() {
         }
     };
 
-    console.log(user?.heightAndWeight);
+    const handleScroll = Animated.event(
+        [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+        { useNativeDriver: true }
+    );
+
+    const translateY = scrollY.interpolate({
+        inputRange: [0, 2000],
+        outputRange: [0, 1000], // Adjust as needed
+        extrapolate: "clamp",
+    });
+
+    const translateX = scrollY.interpolate({
+        inputRange: [0, 1500],
+        outputRange: [WP(-100), 0], // Start from -100% width
+        extrapolate: "clamp",
+    });
+
+    const scaleX = scrollY.interpolate({
+        // Interpolate scaleX
+        inputRange: [0, 1000],
+        outputRange: [0, 1], // 0 for no width, 1 for full width
+        extrapolate: "clamp",
+    });
+
+    const rotate = scrollY.interpolate({
+        inputRange: [0, 2500], // Adjust range as needed
+        outputRange: ["0deg", "360deg"],
+        extrapolate: "clamp",
+    });
+
+    const imageScale = scrollY.interpolate({
+        inputRange: [0, 1000], // Adjust scroll range as needed
+        outputRange: [0.8, 1.2], // Start at scale 1, scale down to 0.7
+        extrapolate: "clamp",
+    });
+
     const navigation = useNavigation();
 
+    const borderRadius = WP(3);
+
+    const datas = [
+        {
+            label: "Gender",
+            value: handleGender(user?.gender),
+        },
+        {
+            label: "Age",
+            value: age,
+        },
+        {
+            label: "Date of Birth",
+            value: formattedDate,
+        },
+        {
+            label: "Height",
+            value: `${height} ${hUnit}`,
+        },
+        {
+            label: "Weight",
+            value: `${weight} ${wUnit}`,
+        },
+        {
+            label: "BMI",
+            value: BMI ? BMI.toFixed(2) : "N/A",
+        },
+        {
+            label: "Body Fat Percentage",
+            value: user?.bodyFatPercentage || "N/A",
+        },
+        {
+            label: "Circumferences",
+            value: circumferences,
+        },
+
+        {
+            label: "BMI Description",
+            value: description,
+        },
+    ];
+
+    useEffect(() => {
+        console.log(selectedItem);
+    }, [selectedItem]);
+
+    const handlePress = (item) => {
+        setSelectedItem(item);
+    };
+
     return (
-        <View style={{ backgroundColor: MyColors(1).black, flex: 1 }}>
+        <View style={{ backgroundColor: MyColors(1).black, width: WP(100) }}>
             <CustomHeaderB
                 navigation={() => navigation.goBack()}
                 text={"Profile"}
             />
-
-            <ProfilePic />
-
-            <ScrollView contentContainerStyle={{ padding: HP(1), gap: HP(1) }}>
+            <Animated.ScrollView
+                contentContainerStyle={{
+                    width: WP(100),
+                    alignItems: "center",
+                    backgroundColor: MyColors(1).gray,
+                }}
+                style={{
+                    height: HP(95),
+                    paddingBottom: HP(20),
+                    borderBottomWidth: 1,
+                }}
+                onScroll={handleScroll}
+                decelerationRate={0.998}
+            >
                 <View
                     style={{
-                        flexDirection: "row",
-                        gap: HP(1),
+                        borderBottomWidth: 1,
+                        borderRightWidth: 1,
+                        borderLeftWidth: 1,
+                        borderBottomLeftRadius: WP(5),
+                        borderBottomRightRadius: WP(5),
+                        width: WP(102),
+                        borderColor: MyColors(1).green,
+                        backgroundColor: MyColors(1).black,
                     }}
                 >
-                    <TouchableOpacity style={[styles.container]}>
-                        <Text style={styles.label}>Height:</Text>
-                        <Text style={styles.value}>
-                            {height}{" "}
-                            {hUnit}
-                        </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.container]}>
-                        <Text style={styles.label}>Weight:</Text>
-                        <Text style={styles.value}>
-                            {weight}{" "}
-                            {wUnit}
-                        </Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity style={[styles.container, { flex: 1 }]}>
-                        <Text style={styles.label}>Gender:</Text>
-                        <Text style={styles.value}>{handleGender()}</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <View style={{ flexDirection: "row", gap: HP(1) }}>
-                    <TouchableOpacity style={styles.container}>
-                        <Text style={styles.label}>Birth Date:</Text>
-                        <Text style={styles.value}>{formattedDate}</Text>
-                    </TouchableOpacity>
-
-                    <TouchableOpacity
-                        style={[styles.container, { gap: HP(1), flex: 1 }]}
+                    <Animated.View
+                        style={{
+                            justifyContent: "center",
+                            alignItems: "center",
+                            height: HP(80),
+                            transform: [{ translateY }], // Use interpolated value
+                            transitionDelay: "1s",
+                            borderColor: MyColors(1).green,
+                        }}
                     >
-                        <Text style={styles.label}>Selected Places:</Text>
+                        <Animated.Image
+                            source={require("@/assets/images/ui/round-1.png")}
+                            resizeMethod={"scale"}
+                            resizeMode="contain"
+                            style={{
+                                aspectRatio: 1,
+                                position: "absolute",
+                                transform: [
+                                    { rotate },
+                                    { rotateZ: "-90deg" },
+                                    { scale: imageScale },
+                                ], // Use interpolated value
+                                width: WP(60),
+                            }}
+                        />
 
-                        <View style={{ flexDirection: "row", gap: HP(1) }}>
-                            {user?.selectedPlace.map((item, index) => (
-                                <Text
-                                    key={item + index}
-                                    style={[
-                                        styles.value,
-                                        {
-                                            borderRadius: WP(2),
-                                            borderWidth: 1,
-                                            borderColor: MyColors(1).gray,
-                                            textAlign: "center",
-                                            padding: HP(0.5),
-                                            width: WP(18),
-                                        },
-                                    ]}
-                                >
-                                    {item}
-                                </Text>
-                            ))}
-                        </View>
-                    </TouchableOpacity>
-                </View>
-
-                <View style={{ gap: HP(1), flexDirection: "row" }}>
-                    <TouchableOpacity
-                        style={[styles.container, { width: WP(47) }]}
-                    >
-                        <Text style={styles.label}>Fitness Level:</Text>
-                        <Text style={styles.value}>{user?.fitnessLevel}</Text>
-                    </TouchableOpacity>
-                    <TouchableOpacity
-                        style={[styles.container, { width: WP(47) }]}
-                    >
-                        <Text style={styles.label}>Activity Level:</Text>
-                        <Text style={styles.value}>{user?.activityLevel}</Text>
-                    </TouchableOpacity>
-                </View>
-
-                <View
-                    style={{
-                        justifyContent: "space-between",
-                    }}
-                >
-                    <TouchableOpacity style={[styles.container]}>
-                        <Text style={styles.label}>Main Goals:</Text>
-                        <View
-                            style={{ flexWrap: "wrap", flexDirection: "row" }}
+                        <Animated.View
+                            style={{
+                                borderWidth: WP(1),
+                                borderColor: MyColors(1).white,
+                                borderRadius: WP(50),
+                                aspectRatio: 1,
+                            }}
                         >
-                            {user?.mainGoal?.map((item, index) => (
-                                <View
-                                    key={index}
-                                    style={{
-                                        flexDirection: "row",
-                                        gap: HP(0.1),
-                                        alignItems: "center",
-                                        width: WP(45),
-                                    }}
-                                >
-                                    <Entypo
-                                        name="dot-single"
-                                        size={HP(2)}
-                                        color={MyColors(1).white}
-                                    />
-                                    <Text style={styles.value}>{item}</Text>
-                                </View>
-                            ))}
-                        </View>
-                    </TouchableOpacity>
+                            <ProfilePic />
+                        </Animated.View>
+                    </Animated.View>
                 </View>
-            </ScrollView>
+
+                <View
+                    style={{
+                        gap: HP(5),
+                        backgroundColor: MyColors(1).gray,
+                        paddingTop: HP(5),
+                    }}
+                >
+                    <View
+                        style={{
+                            justifyContent: "center",
+                            alignItems: "center",
+                        }}
+                    >
+                        <View
+                            style={{
+                                justifyContent: "center",
+                                alignItems: "center",
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    fontWeight: "bold",
+                                    color: MyColors(1).white,
+                                    fontSize: WP(6),
+                                    elevation: 8,
+                                    textShadowColor: MyColors(0.5).white,
+                                    textShadowRadius: 20,
+                                    textAlign: "center",
+                                    width: "100%",
+                                }}
+                            >
+                                {user?.firstName} {user?.lastName}
+                            </Text>
+                        </View>
+                        <TouchableOpacity>
+                            <Text
+                                style={{
+                                    fontSize: WP(3),
+                                    color: MyColors(0.6).white,
+                                }}
+                            >
+                                {user?.email}
+                            </Text>
+                        </TouchableOpacity>
+                    </View>
+
+                    <View style={{ width: WP(102) }}>
+                        <View
+                            style={{
+                                flexDirection: "row",
+                                borderTopWidth: 1,
+                                borderColor: MyColors(1).green,
+                                borderTopRightRadius: WP(5),
+                                borderTopLeftRadius: WP(5),
+                                borderLeftWidth: 1,
+                                borderRightWidth: 1,
+                                width: WP(102),
+                                backgroundColor: MyColors(0.5).black,
+                                padding: WP(5),
+                                paddingVertical: WP(10),
+                                gap: WP(2),
+                            }}
+                        >
+                            <Pressable
+                                style={{
+                                    position: "absolute",
+                                    right: WP(10),
+                                    top: -HP(2),
+                                }}
+                            >
+                                <Feather
+                                    name="edit-2"
+                                    size={WP(8)}
+                                    color={MyColors(1).green}
+                                    style={{
+                                        backgroundColor: MyColors(1).gray,
+                                        borderRadius: WP(10),
+                                        borderWidth: 2,
+                                        borderColor: MyColors(1).green,
+                                        padding: WP(2),
+                                        elevation: 4,
+                                    }}
+                                />
+                            </Pressable>
+                            <View
+                                style={{
+                                    gap: HP(1),
+                                    width: "auto",
+                                }}
+                            >
+                                {datas.map((dataItem, index) => (
+                                    // <Pressable
+                                    //     key={index}
+                                    //     onPress={() => handlePress(dataItem)}
+                                    // >
+                                    <View
+                                        key={index}
+                                        style={
+                                            {
+                                                // gap: HP(1),
+                                                // borderWidth:
+                                                //     selectedItem?.label ===
+                                                //     dataItem.label
+                                                //         ? 1
+                                                //         : 0,
+                                                // borderColor:
+                                                //     selectedItem?.label ===
+                                                //     dataItem.label
+                                                //         ? MyColors(1).green
+                                                //         : null,
+                                            }
+                                        }
+                                    >
+                                        <View
+                                            style={{
+                                                flexDirection:
+                                                    dataItem.label !==
+                                                    "Circumferences"
+                                                        ? "row"
+                                                        : "column",
+                                                gap: WP(2),
+                                            }}
+                                        >
+                                            <Text
+                                                style={{
+                                                    color: MyColors(1).white,
+                                                    fontSize: HP(2),
+                                                    fontWeight: "bold",
+                                                }}
+                                            >
+                                                {dataItem.label}:
+                                            </Text>
+                                            <View
+                                                style={{
+                                                    justifyContent: "center",
+                                                }}
+                                            >
+                                                <Text
+                                                    style={{
+                                                        color: MyColors(0.8)
+                                                            .white,
+                                                    }}
+                                                >
+                                                    {dataItem.label ===
+                                                        "Circumferences" &&
+                                                    dataItem.value ? (
+                                                        Object.entries(
+                                                            dataItem.value
+                                                        ).map(
+                                                            ([key, value]) => (
+                                                                <Text
+                                                                    key={key}
+                                                                    style={{
+                                                                        color: MyColors(
+                                                                            0.8
+                                                                        ).white,
+                                                                    }}
+                                                                >
+                                                                    <Text
+                                                                        style={{
+                                                                            fontWeight:
+                                                                                "bold",
+                                                                            color: MyColors(
+                                                                                1
+                                                                            )
+                                                                                .white,
+                                                                        }}
+                                                                    >
+                                                                        {key
+                                                                            .charAt(
+                                                                                0
+                                                                            )
+                                                                            .toUpperCase() +
+                                                                            key.slice(
+                                                                                1
+                                                                            )}
+                                                                    </Text>
+                                                                    : {value}{" "}
+                                                                    {
+                                                                        circumferences?.unit
+                                                                    }
+                                                                    {" \n"}
+                                                                </Text>
+                                                            )
+                                                        )
+                                                    ) : (
+                                                        <Text
+                                                            style={{
+                                                                color: MyColors(
+                                                                    0.8
+                                                                ).white,
+                                                            }}
+                                                        >
+                                                            {dataItem.value}
+                                                        </Text>
+                                                    )}
+                                                </Text>
+                                            </View>
+                                        </View>
+                                    </View>
+                                    // </Pressable>
+                                ))}
+                            </View>
+                        </View>
+                    </View>
+
+                    <View
+                        style={{
+                            backgroundColor: MyColors(0.1).white,
+                            padding: WP(4),
+                            gap: HP(2),
+                            borderRadius: WP(4),
+                        }}
+                    >
+                        <Text
+                            style={{
+                                color: MyColors(1).white,
+                                fontWeight: "bold",
+                            }}
+                        >
+                            Main Goals:
+                        </Text>
+                        <View>
+                            <Text
+                                style={{
+                                    color: MyColors(0.9).white,
+                                }}
+                            >
+                                {user?.mainGoal?.map((v) => `• ${v} \n`)}
+                            </Text>
+                        </View>
+                    </View>
+
+                    <View
+                        style={{
+                            backgroundColor: MyColors(1).gray,
+                            padding: WP(4),
+                            gap: HP(2),
+                            borderRadius: WP(4),
+                        }}
+                    >
+                        <Text
+                            style={{
+                                color: MyColors(1).white,
+                                fontWeight: "bold",
+                            }}
+                        >
+                            My Exercise Plans:
+                        </Text>
+                        <View>
+                            <Text
+                                style={{
+                                    color: MyColors(0.9).white,
+                                }}
+                            >
+                                {user?.exercisePlan}
+                            </Text>
+                        </View>
+                    </View>
+                </View>
+            </Animated.ScrollView>
         </View>
     );
 }
-
-const styles = StyleSheet.create({
-    container: {
-        borderColor: MyColors(1).gray,
-        borderRadius: WP(2),
-        borderWidth: 1,
-        padding: HP(1),
-        gap: HP(1),
-    },
-    label: {
-        color: MyColors(0.8).green,
-        fontWeight: "bold",
-        fontSize: HP(1.5),
-    },
-    value: {
-        color: MyColors(0.8).white,
-        fontSize: HP(1.4),
-    },
-});

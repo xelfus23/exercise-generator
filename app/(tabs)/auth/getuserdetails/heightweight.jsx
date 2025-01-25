@@ -464,7 +464,7 @@ const HeightAndWeight = React.memo(
                     {error}
                 </Text>
 
-                <TouchableOpacity
+                {/* <TouchableOpacity
                     onPress={test}
                     style={{
                         backgroundColor: MyColors(1).green,
@@ -473,7 +473,7 @@ const HeightAndWeight = React.memo(
                     }}
                 >
                     <Text>Test</Text>
-                </TouchableOpacity>
+                </TouchableOpacity> */}
 
                 <NextButtons
                     handleSubmit={handleSubmit}

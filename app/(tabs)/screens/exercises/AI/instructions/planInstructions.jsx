@@ -6,8 +6,9 @@ const PlanInstructions = (data) => {
 - Output error JSON structure if the request is not specific, unclear, unrelated to exercise or workout plans.
 - Leave the weeks empty, you don't need to add something inside the week 1.
 - This is not a fixed plan, do not add how many weeks this plan is.
-- Ensure the unique keys don't conflict with existing keys.
+- Ensure the unique keys don't conflict with the existing keys.
 - Don't add days.
+- Ensure every output is based on the user data, and vitals listed below.
 
 \n
 
@@ -29,8 +30,8 @@ ${data}
   "error": "The request is not clear, specific, or relevant to workout plans. Please provide more details about your goals, preferences, or vital information."
 }
 
-- Kindly explain to the user what is the reason for the error in a friendly way.
-- You can use the error message to talk to the user.
+- Kindly explain to me what is the reason for the error in a friendly way.
+- You can use the error message to talk to me.
 
 \n
 
@@ -39,7 +40,7 @@ ${data}
 
 **SUCCESS JSON STRUCTURE OUTPUT**:
 {
-    "title": "Title of the workout plan based on user details and requests.", //Maximum of 30 characters.
+    "title": "Title of the workout plan based on user details or requests.", //Maximum of 60 characters.
     "generalObjectives": ["objective 1", "objective 2", "objective 3"], // You can add more objectives as needed.
     "planDescription": "A broad description of the entire workout plan",
     "dietRecommendation": "Diet recommendations",

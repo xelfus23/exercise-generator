@@ -34,7 +34,7 @@ import userData from "@/components/auth/userData";
 import AntDesign from "@expo/vector-icons/AntDesign";
 
 const ChatComponent = ({ user, updateUserData }) => {
-    // const data = userData();
+    const data = userData();
     const [chat, setChat] = useState([]);
     const [userInput, setUserInput] = useState("");
     const [loading, setLoading] = useState(false);
@@ -44,7 +44,7 @@ const ChatComponent = ({ user, updateUserData }) => {
     const [lastFetchedDoc, setLastFetchedDoc] = useState(null);
     const [refreshing, setRefreshing] = useState(false);
     const [error, setError] = useState(null);
-    const instructions = getInstructions("data");
+    const instructions = getInstructions(data);
     const GEMINI_API_KEY = "AIzaSyCiD1R5_8nv5JxFdfhSmvePA5otCtMglOw";
     const genAI = new GoogleGenerativeAI(GEMINI_API_KEY);
     const [isAtBottom, setIsAtBottom] = useState(true); // Track if FlatList is at the bottom

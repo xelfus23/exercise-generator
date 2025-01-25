@@ -253,6 +253,8 @@ const PlanGenerator = () => {
             setGenerating("Generating plan please wait...");
             console.log("INPUT:", input);
 
+            console.log(planInstructions);
+
             const firstResult = await generatePlan({
                 instructions: planInstructions,
                 input: input,

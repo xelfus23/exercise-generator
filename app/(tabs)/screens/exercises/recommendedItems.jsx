@@ -8,8 +8,8 @@ import Ztyles from "./styles";
 import { Feather } from "@expo/vector-icons";
 import { AntDesign } from "@expo/vector-icons";
 
-const styles = Ztyles.Xtyles
-const levelStyles = Ztyles.levelStyles
+const styles = Ztyles.Xtyles;
+const levelStyles = Ztyles.levelStyles;
 
 export default RecommendedItems = ({ item, index, setSelectedItem }) => {
     const exe = item.exercise;
@@ -19,27 +19,30 @@ export default RecommendedItems = ({ item, index, setSelectedItem }) => {
         <ImageBackground style={styles.itemContainer} resizeMode="center">
             <View>
                 <View style={styles.itemLabelContainer}>
-                    <Text
-                        style={{
-                            fontSize: HP(3),
-                            color:
-                                exe?.name !== "Rest Day"
-                                    ? MyColors(0.8).white
-                                    : MyColors(1).green,
-                            fontWeight: "bold",
-                            paddingHorizontal: WP(2),
-                            elevation: WP(4),
-                            shadowColor: MyColors(0.2).white,
-                            borderRadius: WP(10),
-                            width: "auto",
-                        }}
-                    >
-                        {exe?.name === "Rest Day"
-                            ? plan?.title.replace(": Week 1", "") +
-                              " " +
-                              exe?.name
-                            : exe?.name}
-                    </Text>
+                    <View style={{ flexDirection: "row" }}>
+                        <Text
+                            style={{
+                                fontSize: HP(3),
+                                color:
+                                    exe?.name !== "Rest Day"
+                                        ? MyColors(0.8).white
+                                        : MyColors(1).green,
+                                fontWeight: "bold",
+                                paddingHorizontal: WP(2),
+                                borderRadius: WP(10),
+                                width: "100%",
+                                textShadowColor: MyColors(0.5).white,
+                                textShadowRadius: 20,
+                                overflow: "visible",
+                            }}
+                        >
+                            {exe?.name === "Rest Day"
+                                ? plan?.title.replace(": Week 1", "") +
+                                  " " +
+                                  exe?.name
+                                : " " + exe?.name}
+                        </Text>
+                    </View>
                     {exe?.name !== "Rest Day" && (
                         <Text
                             style={{
@@ -48,7 +51,7 @@ export default RecommendedItems = ({ item, index, setSelectedItem }) => {
                                 paddingHorizontal: WP(2),
                             }}
                         >
-                            {plan?.title.replace(": Week 1", "")}
+                            {" " + plan?.title}
                         </Text>
                     )}
                 </View>

@@ -25,7 +25,7 @@ const ProfilePic = () => {
 
     const pickImage = async () => {
         const result = await ImagePicker.launchImageLibraryAsync({
-            mediaTypes: ImagePicker.MediaTypeOptions.Images,
+            mediaTypes: ImagePicker.MediaType.Image, // Corrected line
             allowsEditing: true,
             aspect: [1, 1],
             quality: 1,
@@ -66,54 +66,86 @@ const ProfilePic = () => {
         }
     };
     return (
-        <View style={styles.container}>
-            <View style={styles.profileContainer1}>
-                <View style={styles.profilePicContainer}>
-                    <TouchableOpacity
-                        onPress={pickImage}
-                        onPressOut={() => setPressed(false)}
-                        onPressIn={() => setPressed(true)}
-                        style={styles.pickerButton}
+        <View
+            style={{
+                justifyContent: "center",
+                alignItems: "center",
+                flexDirection: "row",
+            }}
+        >
+            <View
+                style={{
+                    justifyContent: "center",
+                    alignItems: "center",
+                }}
+            >
+                <View
+                    style={{ justifyContent: "center", alignItems: "center" }}
+                >
+                    <View
+                        style={{
+                            borderWidth: 5,
+                            borderRadius: WP(70),
+                            borderColor: MyColors(1).green,
+                            width: WP(40),
+                            aspectRatio: 1,
+                            overflow: "hidden",
+                        }}
                     >
-                        <Image
-                            style={styles.image}
-                            source={image || { uri: user?.ProfilePic }}
-                            placeholder={defaultIcon}
-                            contentFit="cover"
-                            transition={500}
-                        />
-                        <View
+                        <TouchableOpacity
+                            onPress={pickImage}
+                            onPressOut={() => setPressed(false)}
+                            onPressIn={() => setPressed(true)}
                             style={{
-                                backgroundColor: MyColors(0.5).white,
-                                position: "absolute",
-                                alignSelf: "center",
-                                alignItems: "center",
                                 justifyContent: "center",
-                                bottom: 0,
-                                width: "100%",
                             }}
                         >
-                            {pressed && (
-                                <MaterialIcons
-                                    name="add-a-photo"
-                                    size={WP(8)}
-                                    color={MyColors(1).black}
-                                />
-                            )}
-                        </View>
-                    </TouchableOpacity>
+                            <Image
+                                style={{
+                                    aspectRatio: 1,
+                                    borderRadius: "100%",
+                                    alignItems: "center",
+                                }}
+                                source={image || { uri: user?.ProfilePic }}
+                                placeholder={defaultIcon}
+                                contentFit="cover"
+                                transition={500}
+                            />
+
+                            <View
+                                style={{
+                                    backgroundColor: MyColors(0.5).white,
+                                    position: "absolute",
+                                    alignSelf: "center",
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    bottom: 0,
+                                    width: "100%",
+                                }}
+                            >
+                                {pressed && (
+                                    <MaterialIcons
+                                        name="add-a-photo"
+                                        size={WP(8)}
+                                        color={MyColors(1).black}
+                                    />
+                                )}
+                            </View>
+                        </TouchableOpacity>
+                    </View>
                 </View>
-                <TouchableOpacity>
-                    <Text style={styles.name}>
-                        {user?.firstName} {user?.lastName}
-                    </Text>
-                </TouchableOpacity>
             </View>
 
             {image && (
                 <TouchableOpacity
                     onPress={uploadImage}
-                    style={styles.sendButton}
+                    style={{
+                        backgroundColor: MyColors(1).green,
+                        padding: WP(2),
+                        borderRadius: WP(5),
+                        position: "absolute",
+                        left: WP(28),
+                    }}
                 >
                     <AntDesign
                         name="cloudupload"
@@ -125,47 +157,5 @@ const ProfilePic = () => {
         </View>
     );
 };
-
-const styles = StyleSheet.create({
-    profileContainer1: {
-        marginVertical: WP(5),
-        gap: WP(5),
-    },
-    name: {
-        fontWeight: "bold",
-        color: MyColors(1).white,
-        fontSize: WP(5),
-    },
-    sendButton: {
-        backgroundColor: MyColors(1).green,
-        padding: WP(2),
-        borderRadius: WP(5),
-        position: "absolute",
-        left: WP(28),
-    },
-    pickerButton: {
-        justifyContent: "center",
-    },
-    container: {
-        alignItems: "center",
-        flexDirection: "row",
-        borderBottomWidth: 1,
-        paddingLeft: WP(5),
-        borderColor: MyColors(1).gray,
-    },
-    image: {
-        aspectRatio: 1,
-        borderRadius: WP(30),
-        alignItems: "center",
-    },
-    profilePicContainer: {
-        borderWidth: 5,
-        borderRadius: WP(30),
-        borderColor: MyColors(1).green,
-        width: WP(30),
-        aspectRatio: 1,
-        overflow: "hidden",
-    },
-});
 
 export default ProfilePic;

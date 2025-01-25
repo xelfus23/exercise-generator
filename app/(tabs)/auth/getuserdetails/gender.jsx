@@ -1,12 +1,15 @@
-import { View, Text, TouchableOpacity, StyleSheet, } from "react-native";
+import { View, Text, TouchableOpacity, StyleSheet } from "react-native";
 import React, { useState } from "react";
-import { heightPercentageToDP as HP, widthPercentageToDP as WP, } from "react-native-responsive-screen";
+import {
+    heightPercentageToDP as HP,
+    widthPercentageToDP as WP,
+} from "react-native-responsive-screen";
 import { MyColors } from "@/constants/myColors";
 import FontAwesome from "@expo/vector-icons/FontAwesome";
-import styles from './styles'
-import stylesX from '../../auth/authStyles'
-const LoginRegisterStyle = stylesX.LoginRegisterStyle
-import NextButtons from './next'
+import styles from "./styles";
+import stylesX from "../../auth/authStyles";
+const LoginRegisterStyle = stylesX.LoginRegisterStyle;
+import NextButtons from "./next";
 
 export default function Gender({ selectedGender, setSelectedGender, next }) {
     const [error, setError] = useState(null);
@@ -93,7 +96,7 @@ export default function Gender({ selectedGender, setSelectedGender, next }) {
                         </View>
                     </View>
 
-                    <View
+                    {/* <View
                         style={{
                             justifyContent: "center",
                             alignItems: "center",
@@ -122,7 +125,7 @@ export default function Gender({ selectedGender, setSelectedGender, next }) {
                                 Others / I'd rather not say
                             </Text>
                         </TouchableOpacity>
-                    </View>
+                    </View> */}
                 </View>
             </View>
             <Text style={[LoginRegisterStyle.error, { marginBottom: HP(3) }]}>
@@ -135,7 +138,7 @@ export default function Gender({ selectedGender, setSelectedGender, next }) {
             />
         </View>
     );
-};
+}
 
 const genderStyles = StyleSheet.create({
     label: {
