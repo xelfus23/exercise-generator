@@ -6,6 +6,7 @@ import {
     FlatList,
     Image,
     TouchableOpacity,
+    Animated,
 } from "react-native";
 import React, {
     useState,
@@ -22,9 +23,9 @@ import { MyColors } from "@/constants/myColors";
 import Loading from "../../../../components/customs/loading";
 import { LinearGradient } from "expo-linear-gradient";
 import { AntDesign } from "@expo/vector-icons";
-import NextButtons from "./next";
 import styles from "./styles";
 import stylesX from "../../auth/authStyles";
+import LottieView from "lottie-react-native";
 const LoginRegisterStyle = stylesX.LoginRegisterStyle;
 
 const RenderItemHeight = React.memo(({ value, index, itemWidth }) => {
@@ -102,23 +103,26 @@ const HeightAndWeight = React.memo(
     ({
         setSelectedHeightAndWeight,
         selectedHeightAndWeight,
-        next,
         heightOptions,
         weightOptions,
         heightOffsetX,
         weightOffsetX,
         setHeightOffsetX,
         setWeightOffsetX,
+        scrollY,
+        setIndex,
     }) => {
         const { width } = Dimensions.get("window");
         const [heightUnit, setHeightUnit] = useState("CM");
         const [weightUnit, setWeightUnit] = useState("KG");
         const [error, setError] = useState(null);
+        const [isSubmitted, setSubmitted] = useState(false);
         const isTablet = () => {
             const { height, width } = Dimensions.get("window");
             const aspectRatio = height / width;
             return width >= 600 || aspectRatio < 1.6;
         };
+        const fadeAnimationOpacity = useRef(new Animated.Value(1)).current;
 
         const itemWidth = isTablet() ? WP(1) : WP(2);
         const snapInterval = itemWidth;
@@ -126,18 +130,12 @@ const HeightAndWeight = React.memo(
         const heightListRef = useRef(null);
         const weightListRef = useRef(null);
 
-        const [selectedWei, setSelectedWei] = useState(null);
-        const [selectedHei, setSelectedHei] = useState(null);
-
-        const test = () => {
-            console.log(selectedHei, selectedWei);
-        };
+        const AnimatedTouchableOpacity =
+            Animated.createAnimatedComponent(TouchableOpacity);
 
         const heightScroll = useCallback(
             (event) => {
                 const offset = event.nativeEvent.contentOffset.x;
-                setHeightOffsetX(offset);
-
                 let heightIndex = Math.round(
                     (offset + centerX - itemWidth / 2) / snapInterval
                 );
@@ -145,26 +143,21 @@ const HeightAndWeight = React.memo(
                     0,
                     Math.min(heightIndex, heightOptions.length - 1)
                 );
-
-                setSelectedHei(
-                    parseFloat(heightOptions[heightIndex].value - (isTablet() ? 1 : 0.4)).toFixed(1)
-                );
+                setSelectedHeightAndWeight((prev) => ({
+                    ...prev,
+                    height: parseFloat(
+                        heightOptions[heightIndex].value -
+                            (isTablet() ? 1 : 0.4)
+                    ).toFixed(1),
+                    heightUnit: heightUnit,
+                }));
             },
-            [
-                centerX,
-                heightOptions,
-                itemWidth,
-                snapInterval,
-                setHeightOffsetX,
-                setSelectedHei,
-            ]
+            [centerX, heightOptions, itemWidth, snapInterval, setHeightOffsetX]
         );
 
         const weightScroll = useCallback(
             (event) => {
                 const offset = event.nativeEvent.contentOffset.x;
-                setWeightOffsetX(offset);
-
                 let weightIndex = Math.round(
                     (offset + centerX - itemWidth / 2) / snapInterval
                 );
@@ -172,19 +165,16 @@ const HeightAndWeight = React.memo(
                     0,
                     Math.min(weightIndex, weightOptions.length - 1)
                 );
-
-               setSelectedWei(
-                    parseFloat(weightOptions[weightIndex].value - (isTablet() ? 1 : 0.4)).toFixed(1)
-                );
+                setSelectedHeightAndWeight((prev) => ({
+                    ...prev,
+                    weight: parseFloat(
+                        weightOptions[weightIndex].value -
+                            (isTablet() ? 1 : 0.4)
+                    ).toFixed(1),
+                    weightUnit: weightUnit,
+                }));
             },
-            [
-                centerX,
-                weightOptions,
-                itemWidth,
-                snapInterval,
-                setWeightOffsetX,
-                setSelectedWei,
-            ]
+            [centerX, weightOptions, itemWidth, snapInterval, setWeightOffsetX]
         );
 
         const getItemLayout = useCallback(
@@ -195,33 +185,6 @@ const HeightAndWeight = React.memo(
             }),
             [itemWidth]
         );
-
-        const handleSubmit = () => {
-            if (!selectedHei || !selectedWei) {
-                setError("Please select your height and weight.");
-                setTimeout(() => {
-                    setError(null);
-                }, 2000);
-                return;
-            }
-            setSelectedHeightAndWeight({
-                height: selectedHei,
-                weight: selectedWei,
-                heightUnit: heightUnit,
-                weightUnit: weightUnit,
-            });
-            next(1);
-        };
-
-        const backButton = () => {
-            setSelectedHeightAndWeight({
-                height: selectedHei,
-                weight: selectedWei,
-                heightUnit: heightUnit,
-                weightUnit: weightUnit,
-            });
-            next(-1);
-        };
 
         const findInitialIndex = useCallback((options, selectedValue) => {
             if (selectedValue) {
@@ -251,40 +214,82 @@ const HeightAndWeight = React.memo(
             [weightOptions, selectedHeightAndWeight?.weight, findInitialIndex]
         );
 
+        const handleNext = () => {
+            if (
+                !selectedHeightAndWeight?.height &&
+                !selectedHeightAndWeight?.weight
+            ) {
+                setError("Please select a valid height and weight");
+                setTimeout(() => {
+                    setError(null);
+                }, 5000);
+            } else {
+                setSubmitted(true);
+                setIndex(4);
+            }
+        };
+
         useEffect(() => {
-            if (heightListRef?.current && selectedHeightAndWeight?.height) {
-                heightListRef?.current.scrollToOffset({
-                    offset: initialHeightIndex * itemWidth,
-                    animated: false,
-                });
-            }
-            if (weightListRef?.current && selectedHeightAndWeight?.weight) {
-                weightListRef?.current.scrollToOffset({
-                    offset: initialWeightIndex * itemWidth,
-                    animated: false,
-                });
-            }
-        }, [
-            heightListRef,
-            weightListRef,
-            initialHeightIndex,
-            initialWeightIndex,
-            itemWidth,
-            selectedHeightAndWeight,
-        ]);
+            console.log(
+                `Height: ${selectedHeightAndWeight?.height} Weight: ${selectedHeightAndWeight?.weight}`
+            );
+        }, [selectedHeightAndWeight]);
+
+        const moveScroll = scrollY.interpolate({
+            inputRange: [1700, 4000],
+            outputRange: [0, 1000],
+            extrapolate: "clamp",
+        });
+
+        const scrollIconOpacity = scrollY.interpolate({
+            inputRange: [1700, 2400],
+            outputRange: [1, 0], // Start at 0 and fade out
+            extrapolate: "clamp",
+        });
+
+        const fadeOutOpacity = scrollY.interpolate({
+            inputRange: [1700, 2400],
+            outputRange: [1, 0],
+            extrapolate: "clamp",
+        });
 
         return (
             <View style={styles.container}>
                 <View style={{ width: WP(90), marginBottom: HP(3) }}>
-                    <Text style={styles.Title}>
-                        • Select your height and weight
+                    <Text
+                        style={{
+                            fontSize: HP(2),
+                            color: MyColors(0.8).white,
+                            textAlign: "center",
+                        }}
+                    >
+                        Select your{" "}
+                        <Text
+                            style={{
+                                fontWeight: "bold",
+                                color: MyColors(1).green,
+                                textShadowRadius: HP(1.2),
+                                textShadowColor: MyColors(1).green,
+                            }}
+                        >
+                            height
+                        </Text>{" "}
+                        and{" "}
+                        <Text
+                            style={{
+                                fontWeight: "bold",
+                                color: MyColors(1).green,
+                                textShadowRadius: HP(1.2),
+                                textShadowColor: MyColors(1).green,
+                            }}
+                        >
+                            weight
+                        </Text>
                     </Text>
                 </View>
 
                 <View
                     style={{
-                        borderWidth: 1,
-                        borderColor: MyColors(1).gray,
                         borderRadius: WP(4),
                         width: WP(90),
                         alignItems: "center",
@@ -299,12 +304,22 @@ const HeightAndWeight = React.memo(
                                 <View style={{ width: WP(80) }}>
                                     <Text
                                         style={{
-                                            color: MyColors(1).white,
+                                            color: MyColors(0.8).white,
                                             fontSize: HP(2),
                                             fontWeight: "bold",
                                         }}
                                     >
-                                        Height in cm
+                                        Height in{" "}
+                                        <Text
+                                            style={{
+                                                color: MyColors(1).green,
+                                                textShadowColor:
+                                                    MyColors(1).green,
+                                                textShadowRadius: HP(1),
+                                            }}
+                                        >
+                                            centimeters
+                                        </Text>
                                     </Text>
                                 </View>
 
@@ -377,12 +392,22 @@ const HeightAndWeight = React.memo(
                                 <View style={{ width: WP(80) }}>
                                     <Text
                                         style={{
-                                            color: MyColors(1).white,
+                                            color: MyColors(0.8).white,
                                             fontSize: HP(2),
                                             fontWeight: "bold",
                                         }}
                                     >
-                                        Weight in kg
+                                        Weight in{" "}
+                                        <Text
+                                            style={{
+                                                color: MyColors(1).green,
+                                                textShadowColor:
+                                                    MyColors(1).green,
+                                                textShadowRadius: HP(1),
+                                            }}
+                                        >
+                                            kilograms
+                                        </Text>
                                     </Text>
                                 </View>
 
@@ -460,26 +485,68 @@ const HeightAndWeight = React.memo(
                     )}
                 </View>
 
-                <Text style={[LoginRegisterStyle.error, { marginTop: HP(2) }]}>
-                    {error}
-                </Text>
+                {error && !isSubmitted && (
+                    <Text
+                        style={[LoginRegisterStyle.error, { marginTop: HP(2) }]}
+                    >
+                        {error}
+                    </Text>
+                )}
 
-                {/* <TouchableOpacity
-                    onPress={test}
-                    style={{
-                        backgroundColor: MyColors(1).green,
-                        margin: HP(2),
-                        padding: HP(2),
-                    }}
-                >
-                    <Text>Test</Text>
-                </TouchableOpacity> */}
-
-                <NextButtons
-                    handleSubmit={handleSubmit}
-                    error={error}
-                    back={backButton}
-                />
+                <View style={{ height: HP(10) }}>
+                    {!isSubmitted &&
+                    selectedHeightAndWeight &&
+                    selectedHeightAndWeight?.height &&
+                    selectedHeightAndWeight?.weight ? (
+                        <AnimatedTouchableOpacity
+                            onPress={handleNext}
+                            style={{
+                                // backgroundColor: MyColors(1).gray,
+                                borderWidth: 1,
+                                borderColor: MyColors(1).green,
+                                borderRadius: WP(4),
+                                width: WP(60),
+                                alignItems: "center",
+                                justifyContent: "center",
+                                height: HP(6),
+                                opacity: fadeAnimationOpacity,
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    fontSize: HP(2),
+                                    color: MyColors(1).white,
+                                    fontWeight: "bold",
+                                }}
+                            >
+                                Submit
+                            </Text>
+                        </AnimatedTouchableOpacity>
+                    ) : (
+                        selectedHeightAndWeight && (
+                            <Animated.View
+                                style={{
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    height: HP(15),
+                                    transform: [{ translateY: moveScroll }],
+                                    opacity: scrollIconOpacity,
+                                }}
+                            >
+                                <LottieView
+                                    source={require("@/assets/json/scrolldown.json")}
+                                    autoPlay
+                                    loop
+                                    style={{
+                                        height: "100%",
+                                        aspectRatio: 1,
+                                        zIndex: 1000,
+                                    }}
+                                />
+                            </Animated.View>
+                        )
+                    )}
+                </View>
             </View>
         );
     }

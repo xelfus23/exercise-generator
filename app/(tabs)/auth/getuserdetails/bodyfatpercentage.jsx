@@ -1,5 +1,4 @@
 import React, { useState, useEffect, useRef, useCallback } from "react";
-
 import {
     View,
     Text,
@@ -7,15 +6,16 @@ import {
     Alert,
     TextInput,
     TouchableOpacity,
+    Animated,
 } from "react-native";
 import {
     heightPercentageToDP as HP,
     widthPercentageToDP as WP,
 } from "react-native-responsive-screen";
 import { MyColors } from "@/constants/myColors";
-import NextButtons from "./next";
+import LottieView from "lottie-react-native";
 
-const MeasurementInput = ({ value, unit, onChangeText, name, isLastItem }) => {
+const MeasurementInput = ({ value, unit, onChangeText, name }) => {
     return (
         <View
             style={{
@@ -66,15 +66,15 @@ const MeasurementInstructions = ({ instructions }) => {
     );
 };
 
-const UnitSelector = ({ unit, onUnitChange }) => (
-    <View style={{ width: WP(100) }}>
+const UnitSelector = ({ unit, onUnitChange, fadeAnim }) => (
+    <Animated.View style={{ width: WP(100), opacity: fadeAnim }}>
         <View
             style={{
-                padding: HP(1),
                 flexDirection: "row",
                 alignItems: "center",
                 gap: HP(1),
                 marginHorizontal: WP(5),
+                marginTop: HP(4),
             }}
         >
             <TouchableOpacity onPress={() => onUnitChange("CM")}>
@@ -85,7 +85,6 @@ const UnitSelector = ({ unit, onUnitChange }) => (
                                 ? MyColors(1).white
                                 : MyColors(0.8).white,
                         fontWeight: unit === "CM" ? "bold" : "normal",
-                        width: WP(20),
                     }}
                 >
                     Centimeters
@@ -109,19 +108,23 @@ const UnitSelector = ({ unit, onUnitChange }) => (
                 </Text>
             </TouchableOpacity>
         </View>
-    </View>
+    </Animated.View>
 );
 
 export default function BodyFatPercentageScreen({
     selectedBodyMeasurements,
     setSelectedBodyMeasurements,
     selectedGender,
-    next,
+    setIndex,
+    scrollY,
 }) {
     const [unit, setUnit] = useState("CM");
     const [isContinue, setIsContinue] = useState(false);
+    const [isSubmitted, setIsSubmitted] = useState(false);
+    const [error, setError] = useState(null);
     const SVRef = useRef(null);
     const [currentMeasurementIndex, setCurrentMeasurementIndex] = useState(0);
+    const fadeAnim = useRef(new Animated.Value(1)).current;
 
     const measurementConfig = {
         Male: [
@@ -205,6 +208,16 @@ export default function BodyFatPercentageScreen({
         },
     ];
 
+    // Create individual state variables for each measurement
+    const [waist, setWaist] = useState("");
+    const [hip, setHip] = useState("");
+    const [neck, setNeck] = useState("");
+
+    //Create individual state variables for each unit of measurement
+    const [waistUnit, setWaistUnit] = useState("CM");
+    const [hipUnit, setHipUnit] = useState("CM");
+    const [neckUnit, setNeckUnit] = useState("CM");
+
     const convertMeasurement = (value, fromUnit, toUnit) => {
         const CM_TO_INCH = 0.393701;
         if (!value) return "";
@@ -222,103 +235,142 @@ export default function BodyFatPercentageScreen({
 
         return value;
     };
-
     const handleUnitChange = (newUnit) => {
-        if (newUnit !== unit) {
-            setSelectedBodyMeasurements((prevMeasurements) => {
-                const updatedMeasurements = {
-                    ...prevMeasurements,
-                    unit: newUnit,
-                };
-                circumferences.forEach(({ name }) => {
-                    const lowerName = name.toLowerCase();
-                    if (updatedMeasurements[lowerName]) {
-                        updatedMeasurements[lowerName] = convertMeasurement(
-                            updatedMeasurements[lowerName],
-                            unit,
-                            newUnit
-                        );
-                    }
-                });
-                return updatedMeasurements;
-            });
-            setUnit(newUnit);
+        setUnit(newUnit);
+        if (currentMeasurementIndex === 0) {
+            setWaistUnit(newUnit);
+            setWaist(convertMeasurement(waist, unit, newUnit));
+        } else if (currentMeasurementIndex === 1) {
+            setHipUnit(newUnit);
+            setHip(convertMeasurement(hip, unit, newUnit));
+        } else if (currentMeasurementIndex === 2) {
+            setNeckUnit(newUnit);
+            setNeck(convertMeasurement(neck, unit, newUnit));
         }
     };
-
     const handleBackPress = () => {
         if (!isContinue) {
-            next(-1);
+            return;
         } else if (currentMeasurementIndex > 0) {
             setCurrentMeasurementIndex(currentMeasurementIndex - 1);
-            SVRef.current?.scrollTo({
-                x: WP(100) * (currentMeasurementIndex - 1),
-                animated: true,
-            });
         } else {
             setIsContinue(false);
         }
     };
 
-    const handleContinuePress = () => {
-        setIsContinue(true);
-    };
-
     const validateInput = useCallback((value) => {
         if (!value) {
-            Alert.alert("Error", "Please enter your measurement.");
+            setError("Please enter your measurement.");
             return false;
         }
 
         if (/\s/.test(value)) {
-            Alert.alert("Error", "Measurement should not contain spaces.");
+            setError("Measurement should not contain spaces.");
             return false;
         }
 
         if (/[^0-9.]/.test(value)) {
-            Alert.alert(
-                "Error",
+            setError(
                 "Please enter a valid measurement without special characters."
             );
             return false;
         }
 
         if (!/^\d+(\.\d+)?$/.test(value)) {
-            Alert.alert("Error", "Please enter a numeric measurement.");
+            setError("Please enter a numeric measurement.");
             return false;
         }
 
         if (Math.round(parseFloat(value)) === 0) {
-            Alert.alert("Error", "Measurement cannot be zero.");
+            setError("Measurement cannot be zero.");
             return false;
         }
         return true;
     }, []);
 
+    const moveScroll = scrollY.interpolate({
+        inputRange: [3200, 5000],
+        outputRange: [0, 1000],
+        extrapolate: "clamp",
+    });
+
+    const scrollIconOpacity = scrollY.interpolate({
+        inputRange: [3500, 3800],
+        outputRange: [1, 0], // Start at 0 and fade out
+        extrapolate: "clamp",
+    });
+
+    const fadeOutOpacity = scrollY.interpolate({
+        inputRange: [3700, 4000],
+        outputRange: [1, 0],
+        extrapolate: "clamp",
+    });
+
     const handleNextPress = () => {
-        if (!isContinue) {
-            next(1);
-        } else if (currentMeasurementIndex < circumferences.length - 1) {
-            const currentMeasurement = circumferences[currentMeasurementIndex];
-            const measurementValue =
-                selectedBodyMeasurements[currentMeasurement.name.toLowerCase()];
-            if (!validateInput(measurementValue)) {
-                return;
-            }
-            setCurrentMeasurementIndex(currentMeasurementIndex + 1);
-            SVRef.current.scrollTo({
-                x: WP(100) * (currentMeasurementIndex + 1),
-                animated: true,
-            });
-        } else {
-            const currentMeasurement = circumferences[currentMeasurementIndex];
-            const measurementValue =
-                selectedBodyMeasurements[currentMeasurement.name.toLowerCase()];
-            if (!validateInput(measurementValue)) {
-                return;
-            }
-            next(1);
+        let measurementValue = "";
+        if (currentMeasurementIndex === 0) {
+            measurementValue = waist;
         }
+        if (currentMeasurementIndex === 1) {
+            measurementValue = hip;
+        }
+        if (currentMeasurementIndex === 2) {
+            measurementValue = neck;
+        }
+        if (!isContinue) {
+            return;
+        } else if (currentMeasurementIndex < circumferences.length - 1) {
+            if (!validateInput(measurementValue)) {
+                setTimeout(() => {
+                    setError(null);
+                }, [3000]);
+                return;
+            }
+            setCurrentMeasurementIndex((prev) => prev + 1);
+        } else {
+            if (!validateInput(measurementValue)) {
+                setTimeout(() => {
+                    setError(null);
+                }, [3000]);
+                return;
+            }
+            return;
+        }
+    };
+
+    const runFadeAnimation = () => {
+        Animated.timing(fadeAnim, {
+            toValue: 0,
+            duration: 1000,
+            useNativeDriver: true,
+        }).start(() => {
+            setIsSubmitted(true);
+            setIndex(5);
+        });
+    };
+
+    const handleSubmit = () => {
+        const measurements = {
+            waist,
+            hip,
+            neck,
+            unit: waistUnit,
+        };
+
+        if (
+            selectedGender === "Male"
+                ? !measurements.waist || !measurements.neck
+                : !measurements.waist || !measurements.hip || !measurements.neck
+        ) {
+            setError("Please fill all the input fields");
+        } else {
+            setSelectedBodyMeasurements(measurements);
+            runFadeAnimation();
+        }
+    };
+
+    const handleSkip = () => {
+        runFadeAnimation();
     };
 
     useEffect(() => {
@@ -327,249 +379,441 @@ export default function BodyFatPercentageScreen({
         }
     }, [isContinue]);
 
+    useEffect(() => {
+        if (SVRef.current) {
+            SVRef.current.scrollTo({
+                x: WP(100) * currentMeasurementIndex,
+                animated: true,
+            });
+        }
+    }, [currentMeasurementIndex]);
+
     return (
-        <View style={{}}>
-            <Text
-                style={{
-                    color: MyColors(1).white,
-                    fontWeight: "bold",
-                    fontSize: HP(2.5),
-                    padding: WP(5),
-                }}
-            >
-                Let's get your body circumferences measurements
-            </Text>
-            {isContinue && (
-                <UnitSelector unit={unit} onUnitChange={handleUnitChange} />
-            )}
-            {!isContinue ? (
-                <View style={{ padding: WP(5), gap: HP(2) }}>
-                    <View>
+        <View
+            style={{
+                height: HP(100),
+                justifyContent: "center",
+                alignItems: "center",
+            }}
+        >
+            {!isSubmitted && selectedBodyMeasurements.neck === 0 ? (
+                <>
+                    <Text
+                        style={{
+                            color: MyColors(1).white,
+                            fontSize: HP(2),
+                            textAlign: "center",
+                            width: WP(80),
+                        }}
+                    >
+                        Let's get your{" "}
                         <Text
                             style={{
-                                color: MyColors(1).white,
-                                fontSize: HP(2),
-                                fontWeight: "bold",
+                                color: MyColors(1).green,
+                                textShadowColor: MyColors(1).green,
+                                textShadowRadius: HP(1),
                             }}
                         >
-                            Tools:
-                        </Text>
-
-                        <View style={{ gap: HP(1), flexDirection: "row" }}>
-                            <Text
-                                style={{
-                                    color: MyColors(1).white,
-                                    fontSize: HP(2),
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                •
-                            </Text>
-                            <Text
-                                style={{
-                                    color: MyColors(0.8).white,
-                                    fontSize: HP(2),
-                                }}
-                            >
-                                Use a flexible, non-stretchable{" "}
-                                <Text
-                                    style={{
-                                        fontWeight: "bold",
-                                        color: MyColors(1).white,
-                                    }}
-                                >
-                                    Tape Measure.
-                                </Text>
-                                (usually made of cloth or plastic)
-                            </Text>
-                        </View>
-                    </View>
-
-                    <View>
-                        <Text
+                            body circumferences
+                        </Text>{" "}
+                        measurements
+                    </Text>
+                    {isContinue && (
+                        <UnitSelector
+                            unit={unit}
+                            onUnitChange={handleUnitChange}
+                            fadeAnim={fadeAnim}
+                        />
+                    )}
+                    {!isContinue ? (
+                        <Animated.View
                             style={{
-                                color: MyColors(1).white,
-                                fontSize: HP(2),
-                                fontWeight: "bold",
-                            }}
-                        >
-                            Body Position:
-                        </Text>
-
-                        <View style={{ gap: HP(1), flexDirection: "row" }}>
-                            <Text
-                                style={{
-                                    color: MyColors(1).white,
-                                    fontSize: HP(2),
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                •
-                            </Text>
-                            <Text
-                                style={{
-                                    color: MyColors(0.8).white,
-                                    fontSize: HP(2),
-                                }}
-                            >
-                                Perform these measurements in{" "}
-                                <Text
-                                    style={{
-                                        fontWeight: "bold",
-                                        color: MyColors(1).white,
-                                    }}
-                                >
-                                    standing
-                                </Text>
-                                ,{" "}
-                                <Text
-                                    style={{
-                                        fontWeight: "bold",
-                                        color: MyColors(1).white,
-                                    }}
-                                >
-                                    relaxed{" "}
-                                </Text>
-                                position.
-                            </Text>
-                        </View>
-                    </View>
-
-                    <View>
-                        <Text
-                            style={{
-                                color: MyColors(1).white,
-                                fontSize: HP(2),
-                                fontWeight: "bold",
-                            }}
-                        >
-                            Consistency:
-                        </Text>
-
-                        <View style={{ gap: HP(1), flexDirection: "row" }}>
-                            <Text
-                                style={{
-                                    color: MyColors(1).white,
-                                    fontSize: HP(2),
-                                    fontWeight: "bold",
-                                }}
-                            >
-                                •
-                            </Text>
-                            <Text
-                                style={{
-                                    color: MyColors(0.8).white,
-                                    fontSize: HP(2),
-                                }}
-                            >
-                                Measure each area three times, and use the
-                                average of the readings for the most accurate
-                                results.
-                            </Text>
-                        </View>
-                    </View>
-                </View>
-            ) : (
-                <ScrollView
-                    horizontal
-                    contentContainerStyle={{}}
-                    style={{ width: WP(100) }}
-                    snapToInterval={WP(100)}
-                    ref={SVRef}
-                    scrollEnabled={false}
-                    showsHorizontalScrollIndicator={false}
-                >
-                    {circumferences.map((v, i) => (
-                        <View
-                            key={i}
-                            style={{
-                                width: WP(100),
-                                padding: WP(5),
+                                width: WP(80),
                                 gap: HP(2),
+                                marginVertical: HP(5),
+                                opacity: fadeAnim,
                             }}
                         >
-                            <View
-                                style={{
-                                    alignItems: "center",
-                                    flexDirection: "row",
-                                    gap: HP(2),
-                                }}
-                            >
+                            <View>
                                 <Text
                                     style={{
                                         color: MyColors(1).white,
+                                        fontSize: HP(2),
                                         fontWeight: "bold",
-                                        fontSize: HP(2.5),
                                     }}
                                 >
-                                    {i + 1}. {v.name}
+                                    Tools:
                                 </Text>
-                                <MeasurementInput
-                                    value={
-                                        selectedBodyMeasurements[
-                                            v.name.toLowerCase()
-                                        ] || ""
-                                    }
-                                    unit={unit}
-                                    onChangeText={(text) => {
-                                        setSelectedBodyMeasurements({
-                                            ...selectedBodyMeasurements,
-                                            [v.name.toLowerCase()]: text,
-                                        });
-                                    }}
-                                    name={v.name}
-                                />
+
+                                <View
+                                    style={{ gap: HP(1), flexDirection: "row" }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: MyColors(1).white,
+                                            fontSize: HP(2),
+                                            fontWeight: "bold",
+                                        }}
+                                    >
+                                        –
+                                    </Text>
+                                    <Text
+                                        style={{
+                                            color: MyColors(0.8).white,
+                                            fontSize: HP(2),
+                                        }}
+                                    >
+                                        Use a flexible, non-stretchable{" "}
+                                        <Text
+                                            style={{
+                                                fontWeight: "bold",
+                                                color: MyColors(1).white,
+                                            }}
+                                        >
+                                            Tape Measure.
+                                        </Text>{" "}
+                                        (usually made of cloth or plastic)
+                                    </Text>
+                                </View>
                             </View>
 
-                            <MeasurementInstructions
-                                instructions={v.instructions}
-                            />
+                            <View style={{}}>
+                                <Text
+                                    style={{
+                                        color: MyColors(1).white,
+                                        fontSize: HP(2),
+                                        fontWeight: "bold",
+                                    }}
+                                >
+                                    Body Position:
+                                </Text>
 
-                            <View
+                                <View
+                                    style={{ gap: HP(1), flexDirection: "row" }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: MyColors(1).white,
+                                            fontSize: HP(2),
+                                            fontWeight: "bold",
+                                        }}
+                                    >
+                                        –
+                                    </Text>
+                                    <Text
+                                        style={{
+                                            color: MyColors(0.8).white,
+                                            fontSize: HP(2),
+                                        }}
+                                    >
+                                        Perform these measurements in{" "}
+                                        <Text
+                                            style={{
+                                                fontWeight: "bold",
+                                                color: MyColors(1).white,
+                                            }}
+                                        >
+                                            standing
+                                        </Text>
+                                        ,{" "}
+                                        <Text
+                                            style={{
+                                                fontWeight: "bold",
+                                                color: MyColors(1).white,
+                                            }}
+                                        >
+                                            relaxed{" "}
+                                        </Text>
+                                        position.
+                                    </Text>
+                                </View>
+                            </View>
+
+                            <View>
+                                <Text
+                                    style={{
+                                        color: MyColors(1).white,
+                                        fontSize: HP(2),
+                                        fontWeight: "bold",
+                                    }}
+                                >
+                                    Consistency:
+                                </Text>
+
+                                <View
+                                    style={{ gap: HP(1), flexDirection: "row" }}
+                                >
+                                    <Text
+                                        style={{
+                                            color: MyColors(1).white,
+                                            fontSize: HP(2),
+                                            fontWeight: "bold",
+                                        }}
+                                    >
+                                        –
+                                    </Text>
+                                    <Text
+                                        style={{
+                                            color: MyColors(0.8).white,
+                                            fontSize: HP(2),
+                                        }}
+                                    >
+                                        Measure each area three times, and use
+                                        the average of the readings for the most
+                                        accurate results.
+                                    </Text>
+                                </View>
+                            </View>
+                        </Animated.View>
+                    ) : (
+                        <Animated.View
+                            style={{ opacity: fadeAnim, height: HP(50) }}
+                        >
+                            <ScrollView
+                                horizontal
+                                style={{ width: WP(100) }}
+                                contentContainerStyle={{
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                }}
+                                snapToInterval={WP(100)}
+                                ref={SVRef}
+                                scrollEnabled={false}
+                                showsHorizontalScrollIndicator={false}
+                            >
+                                {circumferences.map((v, i) => (
+                                    <View
+                                        key={i}
+                                        style={{
+                                            width: WP(100),
+                                            padding: WP(5),
+                                            gap: HP(2),
+                                            alignItems: "center",
+                                            borderWidth: 1,
+                                        }}
+                                    >
+                                        <View
+                                            style={{
+                                                alignItems: "center",
+                                                flexDirection: "row",
+                                                gap: HP(2),
+                                                width: WP(100),
+                                            }}
+                                        >
+                                            <Text
+                                                style={{
+                                                    color: MyColors(1).white,
+                                                    fontWeight: "bold",
+                                                    fontSize: HP(2.5),
+                                                    marginLeft: WP(5),
+                                                }}
+                                            >
+                                                {i + 1}. {v.name}
+                                            </Text>
+
+                                            <MeasurementInput
+                                                name={v.name}
+                                                value={
+                                                    selectedGender === "Male"
+                                                        ? i === 0
+                                                            ? waist
+                                                            : neck
+                                                        : i === 0
+                                                        ? waist
+                                                        : i === 1
+                                                        ? hip
+                                                        : neck
+                                                }
+                                                unit={
+                                                    i === 0
+                                                        ? waistUnit
+                                                        : i === 1
+                                                        ? hipUnit
+                                                        : neckUnit
+                                                }
+                                                onChangeText={(text) => {
+                                                    if (v.name === "Waist") {
+                                                        setWaist(text);
+                                                    } else if (
+                                                        v.name === "Hip"
+                                                    ) {
+                                                        setHip(text);
+                                                    } else {
+                                                        setNeck(text);
+                                                    }
+                                                }}
+                                            />
+                                        </View>
+
+                                        <View
+                                            style={{
+                                                width: WP(90),
+                                                height: 1,
+                                                backgroundColor:
+                                                    MyColors(1).gray,
+                                            }}
+                                        />
+
+                                        <MeasurementInstructions
+                                            instructions={v.instructions}
+                                        />
+
+                                        <View
+                                            style={{
+                                                width: WP(90),
+                                                height: 1,
+                                                backgroundColor:
+                                                    MyColors(1).gray,
+                                            }}
+                                        />
+
+                                        <Text
+                                            style={{ color: MyColors(1).red }}
+                                        >
+                                            {error}
+                                        </Text>
+
+                                        <View
+                                            style={{
+                                                justifyContent: "space-between",
+                                                flexDirection: "row",
+                                                alignItems: "center",
+                                                width: WP(80),
+                                            }}
+                                        >
+                                            <TouchableOpacity
+                                                onPress={handleBackPress}
+                                                style={{
+                                                    borderWidth: 1,
+                                                    borderColor:
+                                                        MyColors(1).yellow,
+                                                    borderRadius: WP(4),
+                                                    height: HP(6),
+                                                    width: WP(35),
+                                                    justifyContent: "center",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                <Text
+                                                    style={{
+                                                        color: MyColors(1)
+                                                            .white,
+                                                        fontWeight: "bold",
+                                                    }}
+                                                >
+                                                    Back
+                                                </Text>
+                                            </TouchableOpacity>
+                                            <TouchableOpacity
+                                                onPress={
+                                                    i ===
+                                                    circumferences.length - 1
+                                                        ? handleSubmit
+                                                        : handleNextPress
+                                                }
+                                                style={{
+                                                    borderWidth: 1,
+                                                    borderColor: error
+                                                        ? MyColors(1).red
+                                                        : MyColors(1).green,
+                                                    borderRadius: WP(4),
+                                                    height: HP(6),
+                                                    width: WP(35),
+                                                    justifyContent: "center",
+                                                    alignItems: "center",
+                                                }}
+                                            >
+                                                <Text
+                                                    style={{
+                                                        color: MyColors(1)
+                                                            .white,
+                                                        fontWeight: "bold",
+                                                    }}
+                                                >
+                                                    {i ===
+                                                    circumferences.length - 1
+                                                        ? "Submit"
+                                                        : "Next"}
+                                                </Text>
+                                            </TouchableOpacity>
+                                        </View>
+                                    </View>
+                                ))}
+                            </ScrollView>
+                        </Animated.View>
+                    )}
+
+                    {!isContinue && (
+                        <Animated.View style={{ opacity: fadeAnim }}>
+                            <TouchableOpacity
+                                onPress={() => setIsContinue(true)}
                                 style={{
                                     justifyContent: "center",
                                     alignItems: "center",
+                                    borderRadius: WP(4),
+                                    width: WP(80),
+                                    height: HP(6),
+                                    borderWidth: 1,
+                                    borderColor: MyColors(1).green,
+                                    zIndex: 100,
                                 }}
                             >
-                                <NextButtons
-                                    next={handleNextPress}
-                                    back={handleBackPress}
-                                    skipIndex={true}
-                                    isContinue={isContinue}
-                                />
-                            </View>
-                        </View>
-                    ))}
-                </ScrollView>
-            )}
-            {!isContinue && (
-                <View
-                    style={{
-                        justifyContent: "center",
-                        alignItems: "center",
-                    }}
-                >
-                    <NextButtons
-                        next={handleContinuePress}
-                        back={handleBackPress}
-                        skip={true}
-                    />
-                </View>
-            )}
-            {!isContinue && (
-                <View
-                    style={{
-                        justifyContent: "center",
-                        alignItems: "center",
-                    }}
-                >
-                    <NextButtons
-                        next={handleNextPress}
-                        back={handleBackPress}
-                        skipIndex={true}
-                        isContinue={isContinue}
-                    />
-                </View>
+                                <Text
+                                    style={{
+                                        color: MyColors(1).white,
+                                        textAlign: "center",
+                                    }}
+                                >
+                                    Continue
+                                </Text>
+                            </TouchableOpacity>
+                            <TouchableOpacity onPress={handleSkip}>
+                                <Text
+                                    style={{
+                                        color: MyColors(0.8).white,
+                                        textDecorationLine: "underline",
+                                        marginTop: HP(2),
+                                        textAlign: "center",
+                                    }}
+                                >
+                                    Skip this
+                                </Text>
+                            </TouchableOpacity>
+                        </Animated.View>
+                    )}
+                </>
+            ) : (
+                <>
+                    <Animated.Text
+                        style={{
+                            color: MyColors(0.8).white,
+                            fontSize: HP(2),
+                            opacity: fadeOutOpacity,
+                        }}
+                    >
+                        Scroll down to continue
+                    </Animated.Text>
+                    <Animated.View
+                        style={{
+                            alignItems: "center",
+                            justifyContent: "center",
+                            height: HP(15),
+                            transform: [{ translateY: moveScroll }], // Use interpolated value
+                            opacity: scrollIconOpacity,
+                        }}
+                    >
+                        <LottieView
+                            source={require("@/assets/json/scrolldown.json")}
+                            autoPlay
+                            loop
+                            style={{
+                                height: "100%",
+                                aspectRatio: 1,
+                                zIndex: 1000,
+                            }}
+                        />
+                    </Animated.View>
+                </>
             )}
         </View>
     );

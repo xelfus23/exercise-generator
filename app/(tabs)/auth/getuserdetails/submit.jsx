@@ -1,11 +1,17 @@
-import { View, Text, ScrollView, StyleSheet } from "react-native";
-import React, { useState } from "react";
+import {
+    View,
+    Text,
+    ScrollView,
+    StyleSheet,
+    Animated,
+    TouchableOpacity,
+} from "react-native";
+import React, { useState, useRef } from "react";
 import {
     heightPercentageToDP as HP,
     widthPercentageToDP as WP,
 } from "react-native-responsive-screen";
 import { MyColors } from "@/constants/myColors";
-import NextButtons from "./next";
 
 export default function SubmitScreen({
     nickName,
@@ -22,6 +28,7 @@ export default function SubmitScreen({
     submit,
     isLoading,
     next,
+    scrollY,
 }) {
     const getMonth = (m) => {
         switch (m) {
@@ -55,19 +62,34 @@ export default function SubmitScreen({
     };
 
     const [error, setError] = useState(false);
+    const [isSubmitted, setSubmitted] = useState(false);
+    const fadeAnimationOpacity = useRef(new Animated.Value(0)).current;
 
-    const handleSubmit = () => {
-        submit(true);
+    const AnimatedTouchableOpacity =
+        Animated.createAnimatedComponent(TouchableOpacity);
+
+    const fadeAnimation = () => {
+        Animated.timing(fadeAnimationOpacity, {
+            toValue: 0,
+            duration: 1000,
+            useNativeDriver: true,
+        }).start(() => {
+            setSubmitted(true);
+            submit(true);
+        });
     };
 
-    const backButton = () => {
-        next(-1);
+    const handleNext = () => {
+        fadeAnimation();
     };
 
     return (
         <ScrollView
-            style={{ marginTop: HP(5) }}
-            contentContainerStyle={{ alignItems: "center", gap: HP(2) }}
+            contentContainerStyle={{
+                alignItems: "center",
+                gap: HP(2),
+                marginVertical: HP(5),
+            }}
         >
             <View
                 style={{
@@ -134,8 +156,8 @@ export default function SubmitScreen({
                     >
                         <Text style={submitStyles.label}>Height:</Text>
                         <Text style={submitStyles.value}>
-                            {selectedHeightAndWeight.height}{" "}
-                            {selectedHeightAndWeight.unit}
+                            {selectedHeightAndWeight?.height}{" "}
+                            {selectedHeightAndWeight?.unit}
                         </Text>
                     </View>
                     <View
@@ -147,8 +169,8 @@ export default function SubmitScreen({
                     >
                         <Text style={submitStyles.label}>Weight:</Text>
                         <Text style={submitStyles.value}>
-                            {selectedHeightAndWeight.weight}{" "}
-                            {selectedHeightAndWeight.unit}
+                            {selectedHeightAndWeight?.weight}{" "}
+                            {selectedHeightAndWeight?.unit}
                         </Text>
                     </View>
                 </View>
@@ -288,29 +310,40 @@ export default function SubmitScreen({
                         {selectedActivityLevel}
                     </Text>
                 </View>
-                <View
-                    style={{
-                        borderWidth: 1,
-                        borderColor: MyColors(1).gray,
-                        padding: HP(1),
-                        gap: HP(1),
-                        borderRadius: WP(2),
-                        flexDirection: "row",
-                    }}
-                >
-                    <Text style={submitStyles.label}>Fitness Level:</Text>
-                    <Text style={submitStyles.value}>
-                        {selectedFitnessLevel}
-                    </Text>
-                </View>
             </View>
 
-            <NextButtons
-                lastIndex={true}
-                isLoading={isLoading}
-                handleSubmit={handleSubmit}
-                back={backButton}
-            />
+            <Animated.View
+                style={{
+                    width: WP(100),
+                    alignItems: "center",
+                    height: HP(6),
+                }}
+            >
+                {!isSubmitted && (
+                    <AnimatedTouchableOpacity
+                        style={{
+                            height: HP(6),
+                            width: WP(80),
+                            borderColor: MyColors(1).green,
+                            borderRadius: WP(4),
+                            justifyContent: "center",
+                            alignItems: "center",
+                            borderWidth: 1,
+                        }}
+                        onPress={handleNext}
+                    >
+                        <Text
+                            style={{
+                                color: MyColors(1).white,
+                                fontWeight: "bold",
+                                fontSize: HP(2),
+                            }}
+                        >
+                            Complete
+                        </Text>
+                    </AnimatedTouchableOpacity>
+                )}
+            </Animated.View>
         </ScrollView>
     );
 }

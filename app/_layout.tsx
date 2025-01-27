@@ -2,8 +2,9 @@ import {
     DarkTheme,
     DefaultTheme,
     ThemeProvider,
+    Theme, // Added Theme type
 } from "@react-navigation/native";
-import { useFonts } from "expo-font";
+import { useFonts, FontSource } from "expo-font"; // Added FontSource type
 import { Stack } from "expo-router";
 import * as SplashScreen from "expo-splash-screen";
 import { StatusBar } from "expo-status-bar";
@@ -46,7 +47,7 @@ const MainLayout = () => {
 export default function RootLayout() {
     const colorScheme = useColorScheme();
     const [loaded] = useFonts({
-        SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf"),
+        SpaceMono: require("../assets/fonts/SpaceMono-Regular.ttf") as FontSource,
     });
 
     useEffect(() => {
@@ -65,7 +66,7 @@ export default function RootLayout() {
                 }}
             >
                 <View style={{ width: WP(70), height: HP(10) }}>
-                    <Loading />
+                    <Loading size={WP(5)}/>
                 </View>
             </View>
         );
@@ -73,7 +74,7 @@ export default function RootLayout() {
 
     return (
         <ThemeProvider
-            value={colorScheme === "dark" ? DarkTheme : DefaultTheme}
+            value={colorScheme === "dark" ? DarkTheme : DefaultTheme as Theme}
         >
             <MenuProvider>
                 <AuthContextProvider>

@@ -10,7 +10,7 @@ import {
     heightPercentageToDP as HP,
     widthPercentageToDP as WP,
 } from "react-native-responsive-screen";
-import HWModal from "../(tabs)/auth/hwmodal";
+import HWModal from "./auth/hwmodal";
 import { MyColors } from "@/constants/myColors";
 
 const StartNavigation = () => {

@@ -5,8 +5,9 @@ import {
     Alert,
     StatusBar,
     Animated,
+    Text,
 } from "react-native";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { db } from "@/components/firebase/config";
 import { setDoc, doc } from "firebase/firestore";
 import { getAuth } from "firebase/auth";
@@ -27,6 +28,7 @@ import PreferablePlaces from "./getuserdetails/place";
 import ActivityLevel from "./getuserdetails/activity";
 import SelectFitnessLevel from "./getuserdetails/fitness";
 import SubmitScreen from "./getuserdetails/submit";
+import LottieView from "lottie-react-native";
 
 //--------------------------------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -48,21 +50,19 @@ const weightOptions = getWeight();
 const heightOptions = getHeight();
 
 export default function HWmodal() {
-    const {
-        updateUserData,
-        user,
-        setIsAuthenticated,
-        checkInitializationStatus,
-        initialUser,
-        setInitialUser,
-    } = useAuth();
+    const { updateUserData, user, checkInitializationStatus } = useAuth();
     const today = new Date();
-
+    const [index, setIndex] = useState(9);
+    const [isSubmit, setIsSubmit] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
+    const [isBirthYear, setIsBirthYear] = useState(false);
+    const [heightOffsetX, setHeightOffsetX] = useState(null);
+    const [weightOffsetX, setWeightOffsetX] = useState(null);
     const [nickName, setNickName] = useState(null);
     const [selectedGender, setSelectedGender] = useState(null);
-    const [birthYear, setBirthYear] = useState(today.getFullYear());
-    const [birthMonth, setBirthMonth] = useState(today.getMonth());
-    const [birthDay, setBirthDay] = useState(today.getDate());
+    const [birthYear, setBirthYear] = useState(null);
+    const [birthMonth, setBirthMonth] = useState(null);
+    const [birthDay, setBirthDay] = useState(null);
     const [selectedGoal, setSelectedGoal] = useState([]);
     const [selectedHeightAndWeight, setSelectedHeightAndWeight] =
         useState(null);
@@ -70,7 +70,7 @@ export default function HWmodal() {
         useState("Sedentary");
     const [selectedFitnessLevel, setSelectedFitnessLevel] =
         useState("Beginner");
-    const [selectedPlaces, setSelectedPlaces] = useState(null);
+    const [selectedPlaces, setSelectedPlaces] = useState([]);
     const [selectedBodyMeasurements, setSelectedBodyMeasurements] = useState({
         waist: 0,
         neck: 0,
@@ -78,12 +78,8 @@ export default function HWmodal() {
         unit: null,
     });
 
-    const [isSubmit, setIsSubmit] = useState(false);
-    const [isLoading, setIsLoading] = useState(false);
-    const [isBirthYear, setIsBirthYear] = useState(false);
-
-    const [heightOffsetX, setHeightOffsetX] = useState(null);
-    const [weightOffsetX, setWeightOffsetX] = useState(null);
+    const [scrollOffset, setScrollOffset] = useState(0);
+    const scrollY = useRef(new Animated.Value(0)).current;
 
     useEffect(() => {
         if (birthDay && birthMonth && birthYear) {
@@ -173,33 +169,21 @@ export default function HWmodal() {
         }
     };
 
-    const [index, setIndex] = useState(0);
-    const [progress, setProgress] = useState(new Animated.Value(0));
-
-    const nextButton = (value) => {
-        setIndex((prev) => prev + value);
-    };
-
-    useEffect(() => {
-        setTimeout(() => {
-            Animated.timing(progress, {
-                toValue: index,
-                duration: 100,
-                useNativeDriver: false, // Set to false for width animations
-            }).start();
-        }, 200);
-    }, [index]); // Only include index as the dependency
-
     const screens = [
         <NickName
             setNickName={setNickName}
             nickName={nickName}
-            next={nextButton}
+            scrollY={scrollY}
+            setIndex={setIndex}
+            scrollOffset={scrollOffset}
         />,
         <Gender
             setSelectedGender={setSelectedGender}
             selectedGender={selectedGender}
-            next={nextButton}
+            scrollY={scrollY}
+            setIndex={setIndex}
+            nickName={nickName}
+            scrollOffset={scrollOffset}
         />,
         <BirthDate
             setBirthDay={setBirthDay}
@@ -208,45 +192,61 @@ export default function HWmodal() {
             selectedBirthDay={birthDay}
             selectedBirthMonth={birthMonth}
             selectedBirthYear={birthYear}
-            next={nextButton}
+            scrollY={scrollY}
+            setIndex={setIndex}
+            scrollOffset={scrollOffset}
         />,
         <HeightAndWeight
             setSelectedHeightAndWeight={setSelectedHeightAndWeight}
             selectedHeightAndWeight={selectedHeightAndWeight}
-            next={nextButton}
             heightOptions={heightOptions}
             weightOptions={weightOptions}
             setWeightOffsetX={setWeightOffsetX}
             weightOffsetX={weightOffsetX}
             setHeightOffsetX={setHeightOffsetX}
             heightOffsetX={heightOffsetX}
+            scrollY={scrollY}
+            setIndex={setIndex}
+            scrollOffset={scrollOffset}
         />,
         <BodyFatPercentage
             selectedBodyMeasurements={selectedBodyMeasurements}
             setSelectedBodyMeasurements={setSelectedBodyMeasurements}
             selectedGender={selectedGender}
             selectedHeightAndWeight={selectedHeightAndWeight}
-            next={nextButton}
+            scrollY={scrollY}
+            scrollOffset={scrollOffset}
+            setIndex={setIndex}
         />,
         <MainGoal
             setSelectedGoal={setSelectedGoal}
             selectedGoal={selectedGoal}
-            next={nextButton}
+            scrollY={scrollY}
+            setIndex={setIndex}
+            scrollOffset={scrollOffset}
+            nickName={nickName}
         />,
         <PreferablePlaces
             setSelectedPlaces={setSelectedPlaces}
-            next={nextButton}
+            selectedPlaces={selectedPlaces}
+            scrollY={scrollY}
+            setIndex={setIndex}
+            scrollOffset={scrollOffset}
         />,
         <ActivityLevel
             setSelectedActivityLevel={setSelectedActivityLevel}
             selectedActivityLevel={selectedActivityLevel}
-            next={nextButton}
+            scrollY={scrollY}
+            setIndex={setIndex}
+            scrollOffset={scrollOffset}
         />,
         <SelectFitnessLevel
             setSelectedFitnessLevel={setSelectedFitnessLevel}
             submit={setIsSubmit}
             isLoading={isLoading}
-            next={nextButton}
+            scrollOffset={scrollOffset}
+            scrollY={scrollY}
+            setIndex={setIndex}
         />,
         <SubmitScreen
             nickName={nickName}
@@ -262,75 +262,26 @@ export default function HWmodal() {
             selectedBodyMeasurements={selectedBodyMeasurements}
             submit={setIsSubmit}
             isLoading={isLoading}
-            next={nextButton}
+            scrollY={scrollY}
+            scrollOffset={scrollOffset}
+            setIndex={setIndex}
         />,
     ];
 
-    const ProgressBarT = () => {
-        // Interpolate progress value to width
-        const width = progress.interpolate({
-            inputRange: [0, screens.length - 1],
-            outputRange: ["0%", "100%"],
-        });
+    const handleScroll = Animated.event(
+        [{ nativeEvent: { contentOffset: { y: scrollY } } }],
+        { useNativeDriver: true }
+    );
 
-        return (
-            <View
-                style={{
-                    height: HP(0.2),
-                    backgroundColor: MyColors(1).white,
-                    borderRadius: WP(4),
-                    marginTop: HP(5),
-                    width: WP(80),
-                    justifyContent: "center",
-                }}
-            >
-                <Animated.View
-                    style={{
-                        height: HP(0.2),
-                        backgroundColor: MyColors(1).green,
-                        borderRadius: WP(10),
-                        width: width, // Apply interpolated width
-                        alignItems: "flex-end",
-                        justifyContent: "center",
-                    }}
-                ></Animated.View>
-                <View
-                    style={{
-                        position: "absolute",
-                        width: WP(80),
-                        justifyContent: "space-between",
-                        flexDirection: "row",
-                    }}
-                >
-                    {screens.map((item, i) => (
-                        <View
-                            key={i}
-                            style={{
-                                backgroundColor:
-                                    index >= i
-                                        ? MyColors(1).green
-                                        : MyColors(1).white,
-                                width: HP(1),
-                                aspectRatio: 1,
-                                borderRadius: WP(4),
-                                alignItems: "center",
-                                justifyContent: "center",
-                            }}
-                        >
-                            <View
-                                style={{
-                                    backgroundColor: MyColors(1).white,
-                                    width: HP(0.6),
-                                    aspectRatio: 1,
-                                    borderRadius: WP(4),
-                                }}
-                            ></View>
-                        </View>
-                    ))}
-                </View>
-            </View>
-        );
-    };
+    useEffect(() => {
+        scrollY.addListener(({ value }) => {
+            console.log(value);
+            setScrollOffset(value);
+        });
+        return () => {
+            scrollY.removeAllListeners();
+        };
+    }, [scrollY]);
 
     return (
         <Modal style={{ zIndex: 100 }}>
@@ -338,19 +289,21 @@ export default function HWmodal() {
                 backgroundColor={MyColors(1).black}
                 barStyle={"light-content"}
             />
-
-            <ScrollView style={{ flex: 1, backgroundColor: MyColors(1).black }}>
-                <View
-                    style={{
-                        paddingVertical: WP(2),
-                        justifyContent: "center",
-                        alignItems: "center",
-                    }}
-                >
-                    <ProgressBarT />
-                </View>
-                {screens?.[index]}
-            </ScrollView>
+            <Animated.ScrollView
+                style={{ flex: 1, backgroundColor: MyColors(1).black }}
+                onScroll={handleScroll}
+                decelerationRate={0.998}
+                keyboardShouldPersistTaps="handled"
+            >
+                {screens?.map(
+                    (v, i) =>
+                        i <= index && (
+                            <View key={i} style={{ flex: 1 }}>
+                                {v}
+                            </View>
+                        )
+                )}
+            </Animated.ScrollView>
         </Modal>
     );
 }

@@ -6,7 +6,7 @@ import {
 import { View, TouchableOpacity, Text, Image } from "react-native";
 import { MyColors } from "../../../constants/myColors";
 
-export default function Screen1({ handleScroll }) {
+const Screen1 = ({ handleScroll }) => {
     const navigator = useNavigation();
 
     return (
@@ -59,4 +59,6 @@ export default function Screen1({ handleScroll }) {
             </TouchableOpacity>
         </View>
     );
-}
+};
+
+export default Screen1;

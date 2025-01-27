@@ -28,7 +28,6 @@ export default RecommendedItems = ({ item, index, setSelectedItem }) => {
                                         ? MyColors(0.8).white
                                         : MyColors(1).green,
                                 fontWeight: "bold",
-                                paddingHorizontal: WP(2),
                                 borderRadius: WP(10),
                                 width: "100%",
                                 textShadowColor: MyColors(0.5).white,
@@ -48,7 +47,7 @@ export default RecommendedItems = ({ item, index, setSelectedItem }) => {
                             style={{
                                 color: MyColors(1).yellow,
                                 fontSize: HP(1.2),
-                                paddingHorizontal: WP(2),
+                                marginLeft: WP(1),
                             }}
                         >
                             {" " + plan?.title}

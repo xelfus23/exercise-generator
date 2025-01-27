@@ -1,10 +1,25 @@
-import { View, Text, Pressable } from "react-native";
+import {
+    View,
+    Text,
+    Pressable,
+    Animated,
+    TouchableOpacity,
+} from "react-native";
 import React, { useState } from "react";
-import { heightPercentageToDP as HP, widthPercentageToDP as WP } from "react-native-responsive-screen";
+import {
+    heightPercentageToDP as HP,
+    widthPercentageToDP as WP,
+} from "react-native-responsive-screen";
 import { MyColors } from "@/constants/myColors";
-import NextButtons from './next'
+import LottieView from "lottie-react-native";
 
-export default function PreferablePlaces({ setSelectedPlaces, next }) {
+export default function PreferablePlaces({
+    setSelectedPlaces,
+    selectedPlaces,
+    next,
+    scrollY,
+    setIndex,
+}) {
     const places = [
         {
             name: "Home",
@@ -23,62 +38,87 @@ export default function PreferablePlaces({ setSelectedPlaces, next }) {
         },
     ];
 
-    const [selected, setSelected] = useState([]);
     const [error, setError] = useState(null);
+    const [isSubmitted, setSubmitted] = useState(false);
+    const AnimatedTouchableOpacity =
+        Animated.createAnimatedComponent(TouchableOpacity);
 
     const updateSelectedItem = (item) => {
-        setSelected((prev) => {
-            if (prev.includes(item)) {
+        setSelectedPlaces((prev) => {
+            if (prev?.includes(item)) {
                 return prev.filter((selectedItem) => selectedItem !== item);
             } else {
                 return [...prev, item];
             }
         });
-
-        console.log(selected);
     };
 
-    const nextButton = () => {
-        if (selected.length === 0) {
-            setError("Please select one or more.");
-            setTimeout(() => {
-                setError(null);
-            }, 2000);
-            return;
+    const handleNext = () => {
+        if (selectedPlaces?.length === 0) {
+            setError("Please select at least one place.");
+        } else {
+            setSubmitted(true);
+            setIndex(7);
         }
-        setSelectedPlaces(selected);
-        next(1);
     };
 
-    const backButton = () => {
-        next(-1);
-    };
+    const moveScroll = scrollY.interpolate({
+        inputRange: [5000, 8800],
+        outputRange: [0, 1000],
+        extrapolate: "clamp",
+    });
+
+    const scrollIconOpacity = scrollY.interpolate({
+        inputRange: [5400, 5500],
+        outputRange: [1, 0], // Start at 0 and fade out
+        extrapolate: "clamp",
+    });
+
+    const fadeOutOpacity = scrollY.interpolate({
+        inputRange: [5400, 5800],
+        outputRange: [1, 0],
+        extrapolate: "clamp",
+    });
 
     return (
-        <View style={{ alignItems: "center" }}>
-            <View style={{ marginTop: HP(4), width: WP(90) }}>
+        <View
+            style={{
+                alignItems: "center",
+                justifyContent: "center",
+                height: HP(100),
+            }}
+        >
+            <View
+                style={{
+                    marginTop: HP(4),
+                    width: WP(100),
+                    alignItems: "center",
+                    gap: HP(2),
+                }}
+            >
                 <Text
                     style={{
                         color: MyColors(0.8).white,
                         fontWeight: "bold",
                         fontSize: HP(2),
+                        textAlign: "center",
+                        width: WP(70),
                     }}
                 >
-                    • Which place do you prefer to do your exercise?
+                    On what place do you prefer to do your exercise?
                 </Text>
                 <Text
                     style={{
                         color: MyColors(0.8).white,
                         fontSize: HP(1.6),
+                        textAlign: "center",
                     }}
                 >
-                    Choose one or more:
+                    please choose one or more
                 </Text>
             </View>
             <View
                 style={{
-                    borderWidth: 1,
-                    borderColor: MyColors(1).gray,
                     marginHorizontal: WP(5),
                     marginTop: HP(3),
                     borderRadius: WP(4),
@@ -98,7 +138,7 @@ export default function PreferablePlaces({ setSelectedPlaces, next }) {
                                 alignItems: "center",
                                 borderRadius: WP(4),
                                 borderWidth: 1,
-                                borderColor: selected.includes(item.name)
+                                borderColor: selectedPlaces?.includes(item.name)
                                     ? MyColors(0.8).green
                                     : MyColors(1).gray,
                                 padding: HP(1),
@@ -109,12 +149,14 @@ export default function PreferablePlaces({ setSelectedPlaces, next }) {
                         >
                             <Text
                                 style={{
-                                    color: selected.includes(item.name)
+                                    color: selectedPlaces?.includes(item.name)
                                         ? MyColors(0.8).green
                                         : MyColors(0.5).white,
                                     fontSize: HP(2),
                                     fontWeight: "bold",
-                                    elevation: selected.includes(item.name)
+                                    elevation: selectedPlaces?.includes(
+                                        item.name
+                                    )
                                         ? 4
                                         : 0,
                                 }}
@@ -124,7 +166,7 @@ export default function PreferablePlaces({ setSelectedPlaces, next }) {
 
                             <Text
                                 style={{
-                                    color: selected.includes(item.name)
+                                    color: selectedPlaces?.includes(item.name)
                                         ? MyColors(0.8).white
                                         : MyColors(0.5).white,
                                     fontSize: HP(1.5),
@@ -148,9 +190,63 @@ export default function PreferablePlaces({ setSelectedPlaces, next }) {
                 {error}
             </Text>
 
-            <View style={{ justifyContent: "center", alignItems: "center" }}>
-                <NextButtons next={nextButton} back={backButton} />
-            </View>
+            <Animated.View
+                style={{
+                    opacity: fadeOutOpacity,
+                    width: WP(100),
+                    alignItems: "center",
+                    height: HP(6),
+                }}
+            >
+                {!isSubmitted && selectedPlaces?.length > 0 ? (
+                    <AnimatedTouchableOpacity
+                        style={{
+                            height: HP(6),
+                            width: WP(80),
+                            // backgroundColor: MyColors(1).gray,
+                            borderWidth: 1,
+                            borderColor: MyColors(1).green,
+                            borderRadius: WP(4),
+                            justifyContent: "center",
+                            alignItems: "center",
+                        }}
+                        onPress={handleNext}
+                    >
+                        <Text
+                            style={{
+                                color: MyColors(1).white,
+                                fontWeight: "bold",
+                                fontSize: HP(2),
+                            }}
+                        >
+                            Submit
+                        </Text>
+                    </AnimatedTouchableOpacity>
+                ) : (
+                    selectedPlaces.length > 0 && (
+                        <Animated.View
+                            style={{
+                                alignItems: "center",
+                                justifyContent: "center",
+                                height: HP(15),
+                                transform: [{ translateY: moveScroll }], // Use interpolated value
+                                opacity: scrollIconOpacity,
+                            }}
+                        >
+                            <LottieView
+                                source={require("@/assets/json/scrolldown.json")}
+                                autoPlay
+                                loop
+                                style={{
+                                    height: "100%",
+                                    aspectRatio: 1,
+                                    zIndex: 1000,
+                                }}
+                            />
+                        </Animated.View>
+                    )
+                )}
+            </Animated.View>
         </View>
     );
-};
+}

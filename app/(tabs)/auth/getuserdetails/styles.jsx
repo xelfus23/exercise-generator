@@ -1,5 +1,8 @@
 import { StyleSheet } from "react-native";
-import { widthPercentageToDP as WP, heightPercentageToDP as HP } from "react-native-responsive-screen";
+import {
+    widthPercentageToDP as WP,
+    heightPercentageToDP as HP,
+} from "react-native-responsive-screen";
 import { MyColors } from "@/constants/myColors";
 
 const styles = StyleSheet.create({
@@ -9,11 +12,10 @@ const styles = StyleSheet.create({
     },
     container: {
         width: WP(100),
-        flex: 1,
-        backgroundColor: MyColors(1).black,
         zIndex: 100,
         alignItems: "center",
-        marginTop: HP(5),
+        justifyContent: "center",
+        height: HP(100),
     },
     activeItem: {
         borderWidth: 1,
@@ -37,10 +39,10 @@ const styles = StyleSheet.create({
         justifyContent: "space-evenly",
     },
     Title: {
-        fontSize: HP(2),
-        fontWeight: "bold",
-        color: MyColors(1).white,
+        fontSize: HP(2.2),
+        color: MyColors(0.8).white,
+        textAlign: "center",
     },
 });
 
-export default styles
+export default styles;
