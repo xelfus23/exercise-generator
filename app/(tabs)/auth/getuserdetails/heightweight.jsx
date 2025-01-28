@@ -224,9 +224,19 @@ const HeightAndWeight = React.memo(
                     setError(null);
                 }, 5000);
             } else {
+                fadeAnimation();
+            }
+        };
+
+        const fadeAnimation = () => {
+            Animated.timing(fadeAnimationOpacity, {
+                toValue: 0,
+                duration: 1000,
+                useNativeDriver: true,
+            }).start(() => {
                 setSubmitted(true);
                 setIndex(4);
-            }
+            });
         };
 
         useEffect(() => {
@@ -236,13 +246,13 @@ const HeightAndWeight = React.memo(
         }, [selectedHeightAndWeight]);
 
         const moveScroll = scrollY.interpolate({
-            inputRange: [1700, 4000],
+            inputRange: [2700, 4000],
             outputRange: [0, 1000],
             extrapolate: "clamp",
         });
 
         const scrollIconOpacity = scrollY.interpolate({
-            inputRange: [1700, 2400],
+            inputRange: [2800, 4600],
             outputRange: [1, 0], // Start at 0 and fade out
             extrapolate: "clamp",
         });
@@ -254,299 +264,434 @@ const HeightAndWeight = React.memo(
         });
 
         return (
-            <View style={styles.container}>
+            <View
+                style={{
+                    height: HP(100),
+                    width: WP(100),
+                    alignItems: "center",
+                    justifyContent: "center",
+                }}
+            >
                 <View style={{ width: WP(90), marginBottom: HP(3) }}>
-                    <Text
-                        style={{
-                            fontSize: HP(2),
-                            color: MyColors(0.8).white,
-                            textAlign: "center",
-                        }}
-                    >
-                        Select your{" "}
-                        <Text
+                    {!isSubmitted ? (
+                        <Animated.Text
                             style={{
-                                fontWeight: "bold",
-                                color: MyColors(1).green,
-                                textShadowRadius: HP(1.2),
-                                textShadowColor: MyColors(1).green,
-                            }}
-                        >
-                            height
-                        </Text>{" "}
-                        and{" "}
-                        <Text
-                            style={{
-                                fontWeight: "bold",
-                                color: MyColors(1).green,
-                                textShadowRadius: HP(1.2),
-                                textShadowColor: MyColors(1).green,
-                            }}
-                        >
-                            weight
-                        </Text>
-                    </Text>
-                </View>
-
-                <View
-                    style={{
-                        borderRadius: WP(4),
-                        width: WP(90),
-                        alignItems: "center",
-                        justifyContent: "center",
-                        padding: HP(4),
-                        gap: HP(2),
-                    }}
-                >
-                    {weightOptions && heightOptions ? (
-                        <View style={{ gap: HP(3) }}>
-                            <View>
-                                <View style={{ width: WP(80) }}>
-                                    <Text
-                                        style={{
-                                            color: MyColors(0.8).white,
-                                            fontSize: HP(2),
-                                            fontWeight: "bold",
-                                        }}
-                                    >
-                                        Height in{" "}
-                                        <Text
-                                            style={{
-                                                color: MyColors(1).green,
-                                                textShadowColor:
-                                                    MyColors(1).green,
-                                                textShadowRadius: HP(1),
-                                            }}
-                                        >
-                                            centimeters
-                                        </Text>
-                                    </Text>
-                                </View>
-
-                                <View style={{ alignItems: "center" }}>
-                                    <AntDesign
-                                        name="caretdown"
-                                        size={HP(1.5)}
-                                        color={MyColors(1).white}
-                                    />
-
-                                    <LinearGradient
-                                        colors={[
-                                            MyColors(1).black,
-                                            MyColors(0.1).green,
-                                            MyColors(0.5).green,
-                                            MyColors(0.1).green,
-                                            MyColors(1).black,
-                                        ]}
-                                        locations={[0, 0.49, 0.5, 0.51, 1]}
-                                        start={{ x: 0, y: 1 }}
-                                        end={{ x: 1, y: 1 }}
-                                        style={
-                                            heightAndWeightStyles()
-                                                .linearGradient
-                                        }
-                                    >
-                                        <FlatList
-                                            ref={heightListRef}
-                                            data={heightOptions}
-                                            horizontal
-                                            snapToInterval={itemWidth}
-                                            decelerationRate={"fast"}
-                                            onMomentumScrollEnd={heightScroll}
-                                            contentContainerStyle={{
-                                                justifyContent: "center",
-                                            }}
-                                            getItemLayout={getItemLayout}
-                                            showsHorizontalScrollIndicator={
-                                                false
-                                            }
-                                            style={{
-                                                width: isTablet()
-                                                    ? WP(81)
-                                                    : WP(83.5),
-                                            }}
-                                            initialScrollIndex={
-                                                initialHeightIndex
-                                            }
-                                            renderItem={({ item, index }) => (
-                                                <RenderItemHeight
-                                                    value={item}
-                                                    index={index}
-                                                    itemWidth={itemWidth}
-                                                />
-                                            )}
-                                            keyExtractor={(data) =>
-                                                data.value.toString()
-                                            }
-                                        />
-                                    </LinearGradient>
-                                    <AntDesign
-                                        name="caretup"
-                                        size={HP(1.5)}
-                                        color={MyColors(1).white}
-                                    />
-                                </View>
-                            </View>
-
-                            <View>
-                                <View style={{ width: WP(80) }}>
-                                    <Text
-                                        style={{
-                                            color: MyColors(0.8).white,
-                                            fontSize: HP(2),
-                                            fontWeight: "bold",
-                                        }}
-                                    >
-                                        Weight in{" "}
-                                        <Text
-                                            style={{
-                                                color: MyColors(1).green,
-                                                textShadowColor:
-                                                    MyColors(1).green,
-                                                textShadowRadius: HP(1),
-                                            }}
-                                        >
-                                            kilograms
-                                        </Text>
-                                    </Text>
-                                </View>
-
-                                <View style={{ alignItems: "center" }}>
-                                    <AntDesign
-                                        name="caretdown"
-                                        size={HP(1.5)}
-                                        color={MyColors(1).white}
-                                    />
-                                    <LinearGradient
-                                        colors={[
-                                            MyColors(1).black,
-                                            MyColors(0.1).green,
-                                            MyColors(0.5).green,
-                                            MyColors(0.1).green,
-                                            MyColors(1).black,
-                                        ]}
-                                        locations={[0, 0.49, 0.5, 0.51, 1]}
-                                        start={{ x: 0, y: 1 }}
-                                        end={{ x: 1, y: 1 }}
-                                        style={{
-                                            height: HP(8),
-                                            borderTopWidth: 1,
-                                            borderBottomWidth: 1,
-                                            borderColor: MyColors(1).gray,
-                                            overflow: "hidden",
-                                        }}
-                                    >
-                                        <FlatList
-                                            ref={weightListRef}
-                                            data={weightOptions}
-                                            horizontal
-                                            snapToInterval={itemWidth}
-                                            decelerationRate={"fast"}
-                                            onMomentumScrollEnd={weightScroll}
-                                            contentContainerStyle={{
-                                                justifyContent: "center",
-                                            }}
-                                            getItemLayout={getItemLayout}
-                                            showsHorizontalScrollIndicator={
-                                                false
-                                            }
-                                            style={{
-                                                width: isTablet()
-                                                    ? WP(81)
-                                                    : WP(83.5),
-                                            }}
-                                            initialScrollIndex={
-                                                initialWeightIndex
-                                            }
-                                            renderItem={({ item, index }) => (
-                                                <RenderItemWeight
-                                                    value={item}
-                                                    index={index}
-                                                    itemWidth={itemWidth}
-                                                />
-                                            )}
-                                            keyExtractor={(data) =>
-                                                data.value.toString()
-                                            }
-                                        />
-                                    </LinearGradient>
-                                    <AntDesign
-                                        name="caretup"
-                                        size={HP(1.5)}
-                                        color={MyColors(1).white}
-                                    />
-                                </View>
-                            </View>
-                        </View>
-                    ) : (
-                        <View style={{ height: HP(10) }}>
-                            <Loading />
-                        </View>
-                    )}
-                </View>
-
-                {error && !isSubmitted && (
-                    <Text
-                        style={[LoginRegisterStyle.error, { marginTop: HP(2) }]}
-                    >
-                        {error}
-                    </Text>
-                )}
-
-                <View style={{ height: HP(10) }}>
-                    {!isSubmitted &&
-                    selectedHeightAndWeight &&
-                    selectedHeightAndWeight?.height &&
-                    selectedHeightAndWeight?.weight ? (
-                        <AnimatedTouchableOpacity
-                            onPress={handleNext}
-                            style={{
-                                // backgroundColor: MyColors(1).gray,
-                                borderWidth: 1,
-                                borderColor: MyColors(1).green,
-                                borderRadius: WP(4),
-                                width: WP(60),
-                                alignItems: "center",
-                                justifyContent: "center",
-                                height: HP(6),
+                                fontSize: HP(2),
+                                color: MyColors(0.8).white,
+                                textAlign: "center",
                                 opacity: fadeAnimationOpacity,
                             }}
                         >
+                            Select your{" "}
                             <Text
                                 style={{
-                                    fontSize: HP(2),
-                                    color: MyColors(1).white,
                                     fontWeight: "bold",
+                                    color: MyColors(1).green,
+                                    textShadowRadius: HP(1.2),
+                                    textShadowColor: MyColors(1).green,
                                 }}
                             >
-                                Submit
-                            </Text>
-                        </AnimatedTouchableOpacity>
-                    ) : (
-                        selectedHeightAndWeight && (
-                            <Animated.View
+                                height
+                            </Text>{" "}
+                            and{" "}
+                            <Text
                                 style={{
-                                    alignItems: "center",
-                                    justifyContent: "center",
-                                    height: HP(15),
-                                    transform: [{ translateY: moveScroll }],
-                                    opacity: scrollIconOpacity,
+                                    fontWeight: "bold",
+                                    color: MyColors(1).green,
+                                    textShadowRadius: HP(1.2),
+                                    textShadowColor: MyColors(1).green,
                                 }}
                             >
-                                <LottieView
-                                    source={require("@/assets/json/scrolldown.json")}
-                                    autoPlay
-                                    loop
-                                    style={{
-                                        height: "100%",
-                                        aspectRatio: 1,
-                                        zIndex: 1000,
-                                    }}
-                                />
-                            </Animated.View>
-                        )
+                                weight
+                            </Text>
+                        </Animated.Text>
+                    ) : (
+                        <Text
+                            style={{
+                                fontSize: HP(2),
+                                color: MyColors(0.8).white,
+                                textAlign: "center",
+                            }}
+                        >
+                            Keep{" "}
+                            <Text
+                                style={{
+                                    fontWeight: "bold",
+                                    color: MyColors(1).green,
+                                    textShadowRadius: HP(1.2),
+                                    textShadowColor: MyColors(1).green,
+                                }}
+                            >
+                                scrolling
+                            </Text>
+                        </Text>
                     )}
                 </View>
+
+                {!isSubmitted && (
+                    <>
+                        <Animated.View
+                            style={{
+                                borderRadius: WP(4),
+                                width: WP(90),
+                                alignItems: "center",
+                                justifyContent: "center",
+                                padding: HP(4),
+                                gap: HP(2),
+                                opacity: fadeAnimationOpacity,
+                            }}
+                        >
+                            {weightOptions && heightOptions ? (
+                                <View style={{ gap: HP(3) }}>
+                                    <View>
+                                        <View style={{ width: WP(80) }}>
+                                            <Text
+                                                style={{
+                                                    color: MyColors(0.8).white,
+                                                    fontSize: HP(2),
+                                                    fontWeight: "bold",
+                                                }}
+                                            >
+                                                Height in{" "}
+                                                <Text
+                                                    style={{
+                                                        color: MyColors(1)
+                                                            .green,
+                                                        textShadowColor:
+                                                            MyColors(1).green,
+                                                        textShadowRadius: HP(1),
+                                                    }}
+                                                >
+                                                    centimeters
+                                                </Text>
+                                            </Text>
+                                        </View>
+
+                                        <View style={{ alignItems: "center" }}>
+                                            <AntDesign
+                                                name="caretdown"
+                                                size={HP(1.5)}
+                                                color={MyColors(1).white}
+                                            />
+
+                                            <LinearGradient
+                                                colors={[
+                                                    MyColors(1).black,
+                                                    MyColors(0.1).green,
+                                                    MyColors(0.1).green,
+                                                    MyColors(1).black,
+                                                ]}
+                                                locations={[0, 0.49, 0.51, 1]}
+                                                start={{ x: 0, y: 1 }}
+                                                end={{ x: 1, y: 1 }}
+                                                style={{
+                                                    height: HP(8),
+                                                    overflow: "hidden",
+                                                    borderTopWidth: 1,
+                                                    borderBottomWidth: 1,
+                                                    borderColor:
+                                                        MyColors(0.2).gray,
+                                                }}
+                                            >
+                                                <LinearGradient
+                                                    style={{
+                                                        position: "absolute",
+                                                        right: 0,
+                                                        top: 0,
+                                                        bottom: 0,
+                                                        width: WP(20),
+                                                        zIndex: 100,
+                                                    }}
+                                                    pointerEvents="none"
+                                                    start={{ x: 1, y: 1 }}
+                                                    end={{ x: 0, y: 0 }}
+                                                    colors={[
+                                                        MyColors(1).black,
+                                                        "transparent",
+                                                    ]}
+                                                />
+                                                <LinearGradient
+                                                    style={{
+                                                        position: "absolute",
+                                                        left: 0,
+                                                        top: 0,
+                                                        bottom: 0,
+                                                        width: WP(20),
+                                                        zIndex: 100,
+                                                    }}
+                                                    pointerEvents="none"
+                                                    start={{ x: 0, y: 0 }}
+                                                    end={{ x: 1, y: 1 }}
+                                                    colors={[
+                                                        MyColors(1).black,
+                                                        "transparent",
+                                                    ]}
+                                                />
+                                                <FlatList
+                                                    ref={heightListRef}
+                                                    data={heightOptions}
+                                                    horizontal
+                                                    snapToInterval={itemWidth}
+                                                    decelerationRate={"fast"}
+                                                    onMomentumScrollEnd={
+                                                        heightScroll
+                                                    }
+                                                    contentContainerStyle={{
+                                                        justifyContent:
+                                                            "center",
+                                                    }}
+                                                    getItemLayout={
+                                                        getItemLayout
+                                                    }
+                                                    showsHorizontalScrollIndicator={
+                                                        false
+                                                    }
+                                                    style={{
+                                                        width: isTablet()
+                                                            ? WP(81)
+                                                            : WP(83.5),
+                                                    }}
+                                                    initialScrollIndex={
+                                                        initialHeightIndex
+                                                    }
+                                                    renderItem={({
+                                                        item,
+                                                        index,
+                                                    }) => (
+                                                        <RenderItemHeight
+                                                            value={item}
+                                                            index={index}
+                                                            itemWidth={
+                                                                itemWidth
+                                                            }
+                                                        />
+                                                    )}
+                                                    keyExtractor={(data) =>
+                                                        data.value.toString()
+                                                    }
+                                                />
+                                            </LinearGradient>
+                                            <AntDesign
+                                                name="caretup"
+                                                size={HP(1.5)}
+                                                color={MyColors(1).white}
+                                            />
+                                        </View>
+                                    </View>
+
+                                    <View>
+                                        <View style={{ width: WP(80) }}>
+                                            <Text
+                                                style={{
+                                                    color: MyColors(0.8).white,
+                                                    fontSize: HP(2),
+                                                    fontWeight: "bold",
+                                                }}
+                                            >
+                                                Weight in{" "}
+                                                <Text
+                                                    style={{
+                                                        color: MyColors(1)
+                                                            .green,
+                                                        textShadowColor:
+                                                            MyColors(1).green,
+                                                        textShadowRadius: HP(1),
+                                                    }}
+                                                >
+                                                    kilograms
+                                                </Text>
+                                            </Text>
+                                        </View>
+
+                                        <View style={{ alignItems: "center" }}>
+                                            <AntDesign
+                                                name="caretdown"
+                                                size={HP(1.5)}
+                                                color={MyColors(1).white}
+                                            />
+                                            <LinearGradient
+                                                colors={[
+                                                    MyColors(1).black,
+                                                    MyColors(0.1).green,
+                                                    MyColors(0.1).green,
+                                                    MyColors(1).black,
+                                                ]}
+                                                locations={[0, 0.49, 0.51, 1]}
+                                                start={{ x: 0, y: 1 }}
+                                                end={{ x: 1, y: 1 }}
+                                                style={{
+                                                    height: HP(8),
+                                                    borderTopWidth: 1,
+                                                    borderBottomWidth: 1,
+                                                    borderColor:
+                                                        MyColors(0.2).gray,
+                                                    overflow: "hidden",
+                                                }}
+                                            >
+                                                <LinearGradient
+                                                    style={{
+                                                        position: "absolute",
+                                                        right: 0,
+                                                        top: 0,
+                                                        bottom: 0,
+                                                        width: WP(20),
+                                                        zIndex: 100,
+                                                    }}
+                                                    pointerEvents="none"
+                                                    start={{ x: 1, y: 1 }}
+                                                    end={{ x: 0, y: 0 }}
+                                                    colors={[
+                                                        MyColors(1).black,
+                                                        "transparent",
+                                                    ]}
+                                                />
+                                                <LinearGradient
+                                                    style={{
+                                                        position: "absolute",
+                                                        left: 0,
+                                                        top: 0,
+                                                        bottom: 0,
+                                                        width: WP(20),
+                                                        zIndex: 100,
+                                                    }}
+                                                    pointerEvents="none"
+                                                    start={{ x: 0, y: 0 }}
+                                                    end={{ x: 1, y: 1 }}
+                                                    colors={[
+                                                        MyColors(1).black,
+                                                        "transparent",
+                                                    ]}
+                                                />
+                                                <FlatList
+                                                    ref={weightListRef}
+                                                    data={weightOptions}
+                                                    horizontal
+                                                    snapToInterval={itemWidth}
+                                                    decelerationRate={"fast"}
+                                                    onMomentumScrollEnd={
+                                                        weightScroll
+                                                    }
+                                                    contentContainerStyle={{
+                                                        justifyContent:
+                                                            "center",
+                                                    }}
+                                                    getItemLayout={
+                                                        getItemLayout
+                                                    }
+                                                    showsHorizontalScrollIndicator={
+                                                        false
+                                                    }
+                                                    style={{
+                                                        width: isTablet()
+                                                            ? WP(81)
+                                                            : WP(83.5),
+                                                    }}
+                                                    initialScrollIndex={
+                                                        initialWeightIndex
+                                                    }
+                                                    renderItem={({
+                                                        item,
+                                                        index,
+                                                    }) => (
+                                                        <RenderItemWeight
+                                                            value={item}
+                                                            index={index}
+                                                            itemWidth={
+                                                                itemWidth
+                                                            }
+                                                        />
+                                                    )}
+                                                    keyExtractor={(data) =>
+                                                        data.value.toString()
+                                                    }
+                                                />
+                                            </LinearGradient>
+                                            <AntDesign
+                                                name="caretup"
+                                                size={HP(1.5)}
+                                                color={MyColors(1).white}
+                                            />
+                                        </View>
+                                    </View>
+                                </View>
+                            ) : (
+                                <View style={{ height: HP(10) }}>
+                                    <Loading />
+                                </View>
+                            )}
+                        </Animated.View>
+
+                        {error && !isSubmitted && (
+                            <Text
+                                style={[
+                                    LoginRegisterStyle.error,
+                                    { marginTop: HP(2) },
+                                ]}
+                            >
+                                {error}
+                            </Text>
+                        )}
+
+                        <View style={{ height: HP(6), borderWidth: 1 }}>
+                            {!isSubmitted &&
+                            selectedHeightAndWeight?.height &&
+                            selectedHeightAndWeight?.weight ? (
+                                <AnimatedTouchableOpacity
+                                    onPress={handleNext}
+                                    style={{
+                                        // backgroundColor: MyColors(1).gray,
+                                        borderWidth: 1,
+                                        borderColor: MyColors(1).green,
+                                        borderRadius: WP(4),
+                                        width: WP(60),
+                                        alignItems: "center",
+                                        justifyContent: "center",
+                                        height: HP(6),
+                                        opacity: fadeAnimationOpacity,
+                                    }}
+                                >
+                                    <Text
+                                        style={{
+                                            fontSize: HP(2),
+                                            color: MyColors(1).white,
+                                            fontWeight: "bold",
+                                        }}
+                                    >
+                                        Submit
+                                    </Text>
+                                </AnimatedTouchableOpacity>
+                            ) : (
+                                isSubmitted &&
+                                selectedHeightAndWeight?.height &&
+                                selectedHeightAndWeight?.weight && (
+                                    <Animated.View
+                                        style={{
+                                            alignItems: "center",
+                                            justifyContent: "center",
+                                            height: HP(15),
+                                            transform: [
+                                                { translateY: moveScroll },
+                                            ],
+                                            opacity: scrollIconOpacity,
+                                            borderWidth: 1
+                                        }}
+                                    >
+                                        <LottieView
+                                            source={require("@/assets/json/scrolldown.json")}
+                                            autoPlay
+                                            loop
+                                            style={{
+                                                height: "100%",
+                                                aspectRatio: 1,
+                                                zIndex: 1000,
+                                            }}
+                                        />
+                                    </Animated.View>
+                                )
+                            )}
+                        </View>
+                    </>
+                )}
             </View>
         );
     }

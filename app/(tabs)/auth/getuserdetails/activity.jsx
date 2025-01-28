@@ -1,12 +1,16 @@
-import { View, Text, Animated, TouchableOpacity } from "react-native";
 import React, { useState } from "react";
+import {
+    View,
+    Text,
+    TouchableOpacity,
+    ScrollView,
+    Animated,
+} from "react-native";
 import {
     heightPercentageToDP as HP,
     widthPercentageToDP as WP,
 } from "react-native-responsive-screen";
 import { MyColors } from "@/constants/myColors";
-import { LinearGradient } from "expo-linear-gradient";
-import Slider from "@react-native-community/slider";
 import styles from "./styles";
 import LottieView from "lottie-react-native";
 
@@ -41,14 +45,19 @@ export default function ActivityLevel({
         },
     ];
 
-    const [sliderValue, setSliderValue] = useState(0);
     const [isSubmitted, setSubmitted] = useState(false);
+    const [selectedItem, setSelectedItem] = useState(
+        selectedActivityLevel
+            ? ActivityLevels.findIndex(
+                  (level) => level.label === selectedActivityLevel
+              )
+            : null
+    );
 
-    const handleValueChange = (value) => {
-        setSliderValue(value);
-        setSelectedActivityLevel(ActivityLevels[value].label);
+    const handleSelect = (index) => {
+        setSelectedItem(index);
+        setSelectedActivityLevel(ActivityLevels[index].label);
     };
-
     const AnimatedTouchableOpacity =
         Animated.createAnimatedComponent(TouchableOpacity);
 
@@ -74,6 +83,7 @@ export default function ActivityLevel({
         setSubmitted(true);
         setIndex(8);
     };
+
     return (
         <View
             style={{
@@ -102,145 +112,131 @@ export default function ActivityLevel({
                 ?
             </Text>
 
-            <LinearGradient
-                colors={[MyColors(0.5).black, MyColors(1).black]}
-                locations={[0, 1]}
+            <View
                 style={{
-                    flexDirection: "row",
+                    marginTop: HP(5),
+                    width: WP(100),
                     alignItems: "center",
-                    height: HP(40),
-                    marginTop: HP(3),
-                    width: WP(90),
-                    justifyContent: "flex-end",
-                    borderWidth: 1,
-                    borderColor: MyColors(1).gray,
-                    borderRadius: WP(4),
                 }}
             >
-                <Slider
-                    style={{
-                        width: HP(32),
-                        height: 10,
-                        transform: [{ rotate: "-90deg" }],
-                        position: "absolute",
-                        left: -HP(10),
-                        borderWidth: 1,
-                        paddingVertical: WP(3),
-                        borderRadius: WP(4),
-                        borderColor: MyColors(1).gray,
+                <ScrollView
+                    contentContainerStyle={{
+                        alignItems: "center",
                     }}
-                    minimumValue={0}
-                    maximumValue={ActivityLevels.length - 1}
-                    step={1}
-                    value={sliderValue}
-                    onValueChange={handleValueChange}
-                    minimumTrackTintColor={MyColors(1).green}
-                    maximumTrackTintColor={MyColors(1).white}
-                    thumbTintColor={MyColors(1).white}
-                />
+                    horizontal={true}
+                    showsHorizontalScrollIndicator={false}
+                >
+                    {ActivityLevels.map((level, index) => (
+                        <TouchableOpacity
+                            key={index}
+                            onPress={() => handleSelect(index)}
+                            style={{
+                                padding: WP(3),
+                                margin: WP(2),
+                                borderColor:
+                                    selectedItem === index
+                                        ? MyColors(0.8).green
+                                        : MyColors(0.8).gray,
+                                borderWidth: 1,
+                                borderRadius: WP(4),
+                                minWidth: WP(30),
+                                alignItems: "center",
+                            }}
+                        >
+                            <Text
+                                style={{
+                                    color:
+                                        selectedItem === index
+                                            ? MyColors(1).white
+                                            : MyColors(0.8).white,
+                                    fontWeight: "bold",
+                                    textAlign: "center",
+                                }}
+                            >
+                                {level.label}
+                            </Text>
+                        </TouchableOpacity>
+                    ))}
+                </ScrollView>
 
                 <View
                     style={{
-                        justifyContent: "space-between",
-                        height: HP(30),
-                        width: WP(40),
-                        marginRight: WP(25),
+                        marginVertical: HP(2),
+                        padding: WP(3),
+                        borderRadius: WP(4),
+                        alignItems: "center",
                     }}
                 >
-                    {ActivityLevels.slice()
-                        .reverse()
-                        .map((item, index) => (
-                            <View key={item.label}>
-                                <Text
-                                    style={{
-                                        color:
-                                            index ===
-                                            ActivityLevels.length -
-                                                1 -
-                                                sliderValue // Adjust index to match reversed array
-                                                ? MyColors(0.8).green
-                                                : MyColors(0.8).white,
-                                        fontSize: HP(2),
-                                        fontWeight: "bold",
-                                    }}
-                                >
-                                    {item.label}
-                                </Text>
-                            </View>
-                        ))}
-                </View>
-            </LinearGradient>
-
-            <View
-                style={{
-                    marginVertical: HP(2),
-                    padding: WP(3),
-                    borderRadius: WP(4),
-                }}
-            >
-                <Text style={{ color: MyColors(0.8).white }}>
-                    {selectedActivityLevel?.description}
-                </Text>
-            </View>
-
-            <Animated.View
-                style={{
-                    opacity: fadeOutOpacity,
-                    width: WP(100),
-                    alignItems: "center",
-                    height: HP(6),
-                }}
-            >
-                {!isSubmitted && selectedActivityLevel ? (
-                    <AnimatedTouchableOpacity
+                    <Text
                         style={{
-                            height: HP(6),
-                            width: WP(80),
-                            // backgroundColor: MyColors(1).gray,
-                            borderWidth: 1,
-                            borderColor: MyColors(1).green,
-                            borderRadius: WP(4),
-                            justifyContent: "center",
-                            alignItems: "center",
+                            color: MyColors(0.8).white,
+                            textAlign: "center",
                         }}
-                        onPress={handleNext}
                     >
-                        <Text
+                        {selectedItem !== null
+                            ? ActivityLevels[selectedItem].description
+                            : "Select an activity level"}
+                    </Text>
+                </View>
+
+                <Animated.View
+                    style={{
+                        opacity: fadeOutOpacity,
+                        width: WP(100),
+                        alignItems: "center",
+                        height: HP(6),
+                    }}
+                >
+                    {selectedItem !== null && !isSubmitted ? (
+                        <AnimatedTouchableOpacity
                             style={{
-                                color: MyColors(1).white,
-                                fontWeight: "bold",
-                                fontSize: HP(2),
-                            }}
-                        >
-                            Submit
-                        </Text>
-                    </AnimatedTouchableOpacity>
-                ) : (
-                    selectedActivityLevel &&
-                    isSubmitted && (
-                        <Animated.View
-                            style={{
-                                alignItems: "center",
+                                height: HP(6),
+                                width: WP(80),
+                                borderWidth: 1,
+                                borderColor: MyColors(1).green,
+                                borderRadius: WP(4),
                                 justifyContent: "center",
-                                height: HP(15),
-                                transform: [{ translateY: moveScroll }], // Use interpolated value
-                                opacity: scrollIconOpacity,
+                                alignItems: "center",
                             }}
+                            onPress={handleNext}
                         >
-                            <LottieView
-                                source={require("@/assets/json/scrolldown.json")}
-                                autoPlay
-                                loop
+                            <Text
                                 style={{
-                                    height: "100%",
-                                    aspectRatio: 1,
-                                    zIndex: 1000,
+                                    color: MyColors(1).white,
+                                    fontWeight: "bold",
+                                    fontSize: HP(2),
                                 }}
-                            />
-                        </Animated.View>
-                    )
-                )}
-            </Animated.View>
+                            >
+                                Submit
+                            </Text>
+                        </AnimatedTouchableOpacity>
+                    ) : (
+                        selectedActivityLevel &&
+                        isSubmitted && (
+                            <Animated.View
+                                style={{
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    height: HP(15),
+                                    transform: [{ translateY: moveScroll }], // Use interpolated value
+                                    opacity: scrollIconOpacity,
+                                }}
+                            >
+                                <LottieView
+                                    source={require("@/assets/json/scrolldown.json")}
+                                    autoPlay
+                                    loop
+                                    style={{
+                                        height: "100%",
+                                        aspectRatio: 1,
+                                        zIndex: 1000,
+                                    }}
+                                />
+                            </Animated.View>
+                        )
+                    )}
+                </Animated.View>
+            </View>
         </View>
     );
 }

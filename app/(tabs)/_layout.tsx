@@ -10,7 +10,7 @@ import {
     heightPercentageToDP as HP,
     widthPercentageToDP as WP,
 } from "react-native-responsive-screen";
-import HWModal from "./auth/hwmodal";
+import GetUserDetails from "./auth/getUserDetails";
 import { MyColors } from "@/constants/myColors";
 
 const StartNavigation = () => {
@@ -27,7 +27,7 @@ const StartNavigation = () => {
                 <Stack.Screen name="start" component={getStarted} />
                 <Stack.Screen name="login" component={login} />
                 <Stack.Screen name="signup" component={signup} />
-                <Stack.Screen name="getDetails" component={HWModal} />
+                <Stack.Screen name="getDetails" component={GetUserDetails} />
             </>
         </Stack.Navigator>
     );

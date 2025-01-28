@@ -106,7 +106,7 @@ export default function SelectFitnessLevel({
     });
 
     const fadeOutOpacity = scrollY.interpolate({
-        inputRange: [6400, 6800],
+        inputRange: [6800, 9800],
         outputRange: [1, 0],
         extrapolate: "clamp",
     });
@@ -137,6 +137,7 @@ export default function SelectFitnessLevel({
                 justifyContent: "center",
                 alignItems: "center",
                 height: HP(100),
+                gap: HP(5),
             }}
         >
             <Text
@@ -164,13 +165,12 @@ export default function SelectFitnessLevel({
                 style={{
                     flexDirection: "row",
                     paddingBottom: HP(3),
-                    alignItems: "center",
                     justifyContent: "space-between",
                     width: WP(80),
                     height: HP(50),
                 }}
             >
-                <View style={{ gap: HP(2) }}>
+                <View style={{ gap: HP(1) }}>
                     {FitnessLevels.map((levels) => (
                         <TouchableOpacity
                             key={levels.label}
@@ -235,15 +235,23 @@ export default function SelectFitnessLevel({
                                 Description:
                             </Text>
                             {fitnessLevel.characteristics.map((char, index) => (
-                                <Text
+                                <View
+                                    style={{ flexDirection: "row" }}
                                     key={index}
-                                    style={{
-                                        color: MyColors(1).white,
-                                        fontSize: HP(1.5),
-                                    }}
                                 >
-                                    {char}
-                                </Text>
+                                    <Text style={{ color: MyColors(1).white }}>
+                                        •{" "}
+                                    </Text>
+                                    <Text
+                                        key={index}
+                                        style={{
+                                            color: MyColors(1).white,
+                                            fontSize: HP(1.5),
+                                        }}
+                                    >
+                                        {char}
+                                    </Text>
+                                </View>
                             ))}
 
                             <Text
@@ -257,15 +265,25 @@ export default function SelectFitnessLevel({
                             </Text>
                             {fitnessLevel.typicalActivities.map(
                                 (act, index) => (
-                                    <Text
+                                    <View
+                                        style={{ flexDirection: "row" }}
                                         key={index}
-                                        style={{
-                                            color: MyColors(1).white,
-                                            fontSize: HP(1.5),
-                                        }}
                                     >
-                                        {act}
-                                    </Text>
+                                        <Text
+                                            style={{ color: MyColors(1).white }}
+                                        >
+                                            •{" "}
+                                        </Text>
+                                        <Text
+                                            key={index}
+                                            style={{
+                                                color: MyColors(1).white,
+                                                fontSize: HP(1.5),
+                                            }}
+                                        >
+                                            {act}
+                                        </Text>
+                                    </View>
                                 )
                             )}
                         </View>

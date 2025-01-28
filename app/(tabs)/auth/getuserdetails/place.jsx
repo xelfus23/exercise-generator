@@ -4,6 +4,7 @@ import {
     Pressable,
     Animated,
     TouchableOpacity,
+    Image,
 } from "react-native";
 import React, { useState } from "react";
 import {
@@ -25,16 +26,19 @@ export default function PreferablePlaces({
             name: "Home",
             description:
                 "A personal and private space, typically inside a house or apartment, where you can relax, live, and manage daily activities. It's easily accessible, allowing you to have flexibility in your schedule.",
+            icon: require("@/assets/images/ui/home.png"),
         },
         {
             name: "Outdoor",
             description:
                 "Any open, natural environment such as parks, fields, or beaches. It provides fresh air, natural scenery, and a space that can be used for recreational activities, walking, or socializing.",
+            icon: require("@/assets/images/ui/outdoor.png"),
         },
         {
             name: "Gym",
             description:
                 "A fitness center or facility equipped with machines, free weights, and other exercise tools. It’s a controlled environment specifically designed for training and physical exercise.",
+            icon: require("@/assets/images/ui/gym.png"),
         },
     ];
 
@@ -114,7 +118,7 @@ export default function PreferablePlaces({
                         textAlign: "center",
                     }}
                 >
-                    please choose one or more
+                    you can choose one or more
                 </Text>
             </View>
             <View
@@ -147,22 +151,44 @@ export default function PreferablePlaces({
                                 gap: WP(4),
                             }}
                         >
-                            <Text
+                            <View
                                 style={{
-                                    color: selectedPlaces?.includes(item.name)
-                                        ? MyColors(0.8).green
-                                        : MyColors(0.5).white,
-                                    fontSize: HP(2),
-                                    fontWeight: "bold",
-                                    elevation: selectedPlaces?.includes(
-                                        item.name
-                                    )
-                                        ? 4
-                                        : 0,
+                                    alignItems: "center",
+                                    justifyContent: "center",
+                                    width: "30%",
                                 }}
                             >
-                                {item.name}
-                            </Text>
+                                <Image
+                                    source={item.icon}
+                                    style={{
+                                        tintColor: selectedPlaces?.includes(
+                                            item.name
+                                        )
+                                            ? MyColors(0.8).green
+                                            : MyColors(1).white,
+                                        aspectRatio: 1,
+                                        height: HP(3),
+                                    }}
+                                />
+                                <Text
+                                    style={{
+                                        color: selectedPlaces?.includes(
+                                            item.name
+                                        )
+                                            ? MyColors(1).green
+                                            : MyColors(1).white,
+                                        fontSize: HP(2),
+                                        fontWeight: "bold",
+                                        elevation: selectedPlaces?.includes(
+                                            item.name
+                                        )
+                                            ? 4
+                                            : 0,
+                                    }}
+                                >
+                                    {item.name}
+                                </Text>
+                            </View>
 
                             <Text
                                 style={{

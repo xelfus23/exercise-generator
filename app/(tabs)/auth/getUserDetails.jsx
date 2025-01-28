@@ -49,10 +49,10 @@ const getHeight = () => {
 const weightOptions = getWeight();
 const heightOptions = getHeight();
 
-export default function HWmodal() {
+export default function GetUserDetails() {
     const { updateUserData, user, checkInitializationStatus } = useAuth();
     const today = new Date();
-    const [index, setIndex] = useState(9);
+    const [index, setIndex] = useState(0);
     const [isSubmit, setIsSubmit] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
     const [isBirthYear, setIsBirthYear] = useState(false);
@@ -142,21 +142,21 @@ export default function HWmodal() {
                     { merge: true }
                 );
                 console.log(
-                    "HWmodal: HandleSubmit - User document updated successfully"
+                    "GetUserDetails: HandleSubmit - User document updated successfully"
                 );
                 console.log(
-                    "HWmodal: HandleSubmit - Calling updateUserData",
+                    "GetUserDetails: HandleSubmit - Calling updateUserData",
                     user.uid
                 );
 
                 await updateUserData(currentUser.uid);
 
                 console.log(
-                    "HWmodal: HandleSubmit - after updateUserData",
+                    "GetUserDetails: HandleSubmit - after updateUserData",
                     user
                 );
                 console.log(
-                    "HWmodal: HandleSubmit - updateUserData finished, setting isAuth to true"
+                    "GetUserDetails: HandleSubmit - updateUserData finished, setting isAuth to true"
                 );
 
                 setIsFinished(true);

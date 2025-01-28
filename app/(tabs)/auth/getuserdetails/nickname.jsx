@@ -107,7 +107,7 @@ export default function Nickname({
                 alignItems: "center",
                 justifyContent: "center",
                 padding: WP(5),
-                gap: HP(2),
+                gap: HP(3),
                 height: HP(100),
             }}
         >
@@ -153,7 +153,7 @@ export default function Nickname({
                     </Animated.Text>
                 )}
 
-                <Animated.View style={{ opacity: textInputOpacity }}>
+                <Animated.View style={{ opacity: textInputOpacity, marginTop: HP(5) }}>
                     {!isSubmitted && (
                         <View
                             style={{
